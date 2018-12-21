@@ -1,0 +1,7 @@
+"0","```r
+data_wf %>% 
+  count(!is.na(sens_M), !is.na(wake_time)) %>% 
+  mutate(
+    per = nn / sum(nn)
+  )
+```"

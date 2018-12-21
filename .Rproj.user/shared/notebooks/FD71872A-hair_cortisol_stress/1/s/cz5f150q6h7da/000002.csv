@@ -1,0 +1,27 @@
+"0","```r
+hc <-
+  hc %>% 
+  left_join(
+    epds %>% 
+      select(
+        ID, 
+        epds_total_preg,
+        epds_total_newborn,
+        epds_max,
+        epds_mean
+      ), 
+    by = \"ID\"
+  ) %>% 
+  left_join(
+    cesd %>% 
+      select(
+        ID,
+        cesd_total_preg,
+        cesd_total_newborn,
+        cesd_max,
+        cesd_mean
+      ),
+    by = \"ID\"
+  ) %>% 
+  left_join(crisys, by = \"ID\") 
+```"

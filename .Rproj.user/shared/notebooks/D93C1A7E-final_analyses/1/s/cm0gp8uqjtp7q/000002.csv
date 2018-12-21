@@ -1,0 +1,16 @@
+"0","```r
+babies %>% 
+  select(
+    sens_M,
+    touch_M,
+    AWC_rate
+    #iri_persp:iri_perdis
+    ) %>% 
+  correlate(method = \"pearson\") %>% 
+  fashion()
+
+```"
+"1","
+Correlation method: 'pearson'
+Missing treated using: 'pairwise.complete.obs'
+"

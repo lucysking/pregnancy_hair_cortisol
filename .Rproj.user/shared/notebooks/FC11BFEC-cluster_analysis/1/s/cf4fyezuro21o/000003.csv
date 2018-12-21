@@ -1,0 +1,10 @@
+"0","```r
+babies %>% 
+  mutate(
+    age_diff = (baby_age_lena - baby_age_visit)*4
+  ) %>% 
+  summarize_at(
+    vars(age_diff),
+    funs(mean, sd), na.rm = TRUE
+  ) 
+```"

@@ -1,0 +1,19 @@
+"0","```r
+ari <-
+  ari %>% 
+  group_by(ID) %>% 
+  mutate(
+    ari_total = mean(
+      c(
+        ari_1,
+        ari_2,
+        ari_3,
+        ari_4,
+        ari_5,
+        ari_6,
+        ari_7
+      ),
+      na.rm = TRUE
+    ) * 7
+  )
+```"

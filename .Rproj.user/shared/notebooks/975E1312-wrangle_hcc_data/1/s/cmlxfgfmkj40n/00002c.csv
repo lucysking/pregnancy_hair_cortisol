@@ -1,0 +1,7 @@
+"0","hc %>% "
+"0","  group_by(trimester) %>% "
+"0","  filter(!is.na(hc_trimlog)) %>% "
+"0","  summarise_at("
+"0","    vars(hc_value, hc_log, hc_trimlog),"
+"0","    funs(n(), mean, sd)"
+"0","  )"

@@ -1,0 +1,85 @@
+"0","```r
+data_wf %>% 
+  count(Condition)
+
+##age
+data_wf %>% 
+  summarise_at(
+    vars(mom_age),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  summarise_at(
+    vars(mom_age),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+##education
+data_wf %>% 
+  count(education) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  count(education) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  summarise(
+    median(education) #7 = Graduate or professional degree
+  )
+
+##income
+data_wf %>% 
+  count(income) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  count(income) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  filter(income != \"6\") %>% 
+  summarise(
+    median(income) #5 = $100,000 or More 
+  )
+
+##ethnicity
+data_wf %>% 
+  count(latino) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  count(latino) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+#race
+data_wf %>% 
+  count(race) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  count(race) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+```"

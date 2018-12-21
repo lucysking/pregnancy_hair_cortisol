@@ -1,0 +1,72 @@
+"0","```r
+##Libraries
+library(tidyverse)
+library(lme4)
+```"
+"1","Loading required package: Matrix
+
+Attaching package: ‘Matrix’
+
+The following object is masked from ‘package:tidyr’:
+
+    expand
+"
+"0","```r
+library(lmerTest)
+```"
+"1","
+Attaching package: ‘lmerTest’
+
+The following object is masked from ‘package:lme4’:
+
+    lmer
+
+The following object is masked from ‘package:stats’:
+
+    step
+"
+"0","```r
+library(jtools)
+library(lcmm)
+```"
+"1","Loading required package: survival
+
+Attaching package: ‘lcmm’
+
+The following objects are masked from ‘package:lme4’:
+
+    fixef, ranef
+"
+"0","```r
+library(nlme)
+```"
+"1","
+Attaching package: ‘nlme’
+
+The following objects are masked from ‘package:lcmm’:
+
+    fixef, ranef
+
+The following object is masked from ‘package:lme4’:
+
+    lmList
+
+The following object is masked from ‘package:dplyr’:
+
+    collapse
+"
+"0","```r
+##Parameters
+#files_________________________________________________________________
+intervention_file <- \"~/Desktop/BABIES/manber_sleep/data/ID and Tx Arm.csv\"
+duke_file <- \"~/Desktop/BABIES/manber_sleep/data/Postpartum Dukes_insomnia criteria_for caregiving data.xlsx\"
+demographics_file <- \"~/Desktop/BABIES/manber_sleep/data/Demographics_02.15.18.xlsx\"
+#colors
+blue_purple <- c(
+  \"#bfd3e6\",
+  \"#9ebcda\",
+  \"#8c96c6\",
+  \"#8856a7\",
+  \"#810f7c\"
+)
+```"

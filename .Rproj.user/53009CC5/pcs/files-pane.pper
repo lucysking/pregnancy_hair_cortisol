@@ -1,0 +1,13 @@
+{
+    "path" : "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/pregnancy_hair_cortisol",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        },
+        {
+            "ascending" : true,
+            "columnIndex" : 4
+        }
+    ]
+}

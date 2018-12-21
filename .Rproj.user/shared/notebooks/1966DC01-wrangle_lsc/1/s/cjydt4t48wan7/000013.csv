@@ -1,0 +1,7 @@
+"0","```r
+lscr_6mo %>% 
+  count(maltreated) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+```"

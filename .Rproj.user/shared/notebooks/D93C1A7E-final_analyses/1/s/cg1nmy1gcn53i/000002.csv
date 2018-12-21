@@ -1,0 +1,195 @@
+"0","```r
+demo <-
+  read_csv(demo_6months_file) %>% 
+  select(
+    ID = record_id,
+    mom_ethnicity, 
+    mom_race,
+    momrace_describe,
+    education,
+    educ_describe,
+    marital_status,
+    marital_explain,
+    annual_income,
+    ppl_in_home_adults,
+    ppl_in_home_allchild
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    ppl_in_home = ppl_in_home_adults + ppl_in_home_allchild
+  ) %>% 
+  bind_rows(
+    read_csv(demo_longitudinal_file) %>% 
+      select(
+        ID = record_id,
+        mom_ethnicity, 
+        mom_race,
+        momrace_describe,
+        education,
+        educ_describe,
+        marital_status,
+        marital_explain,
+        annual_income,
+        ppl_in_home_adults,
+        ppl_in_home_allchild,
+        baby_sex
+      ) %>% 
+      mutate(
+        ID = as.integer(ID)
+      )
+  ) %>% 
+  mutate(
+    household_income = as.character(annual_income),
+    household_income_numeric = as.numeric(
+      recode(
+        annual_income,
+        \"1\" = \"2500\",
+        \"2\" = \"10000\",
+        \"3\" = \"22500\",
+        \"4\" = \"45000\",
+        \"5\" = \"75000\",
+        \"6\" = \"120000\",
+        \"7\" = \"150000\"
+      )
+    ),
+    #santa clara country low-income limit : 80% of median income (ratios <= 1 are therefore \"low income\")
+    #https://www.huduser.gov/portal/datasets/il/il2017/2017summary.odn
+    SC_lowincome_limit = as.numeric(
+      recode(
+        ppl_in_home,
+        \"1\" = \"59350\",
+        \"2\" = \"67800\",
+        \"3\" = \"76300\", 
+        \"4\" = \"84750\",
+        \"5\" = \"91500\",
+        \"6\" = \"98350\",
+        \"7\" = \"105100\",
+        \"8\" = \"111900\",
+        .default = \"111900\"
+      )
+    ),
+    income_needs = household_income_numeric / SC_lowincome_limit
+  ) %>% 
+  left_join(
+    read_csv(dob_6months_file) %>% 
+      select(
+        ID = record_id,
+        mom_dob,
+        baby_dob
+      ) %>% 
+      mutate(ID = as.integer(ID)) %>% 
+      bind_rows(
+        read_csv(dob_6months_file) %>% 
+          select(
+            ID = record_id,
+            baby_sex
+          ) %>% 
+          mutate(ID = as.integer(ID))
+      ) %>% 
+      bind_rows(
+        read_csv(dob_longitudinal_file) %>% 
+          select(
+            ID = record_id,
+            mom_dob,
+            baby_dob
+          ) %>% 
+          mutate(ID = as.integer(ID))
+      )
+  ) %>% 
+  left_join(
+    read_csv(visit_date_6months_file) %>% 
+      rename(ID = record_id) %>% 
+      mutate(ID = as.integer(ID)) %>% 
+      bind_rows(
+        read_csv(visit_date_longitudinal_file) %>% 
+          rename(ID = record_id) %>% 
+          mutate(ID = as.integer(ID))
+      )
+  ) %>% 
+  mutate(
+    mom_dob = parse_date(mom_dob, format = \"%m/%d/%y\"),
+    baby_dob = parse_date(baby_dob, format = \"%m/%d/%y\"),
+    crf_date = parse_date(crf_date, format = \"%m/%d/%y\")
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  record_id = col_character(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  demograph_date = col_character(),
+  momrace_describe = col_character(),
+  educ_describe = col_character(),
+  employment_explain = col_character(),
+  mom_pob = col_character(),
+  mom_native_lang = col_character(),
+  primarylang_6mo = col_character(),
+  secondlang_6mo_type = col_character(),
+  marital_explain = col_character(),
+  partner_age = col_character(),
+  partner_educ_describe = col_character(),
+  partner_employ_describe = col_character(),
+  partner_pob = col_character(),
+  ppl_in_home_describe = col_character(),
+  childrace_describe = col_character(),
+  child_pob = col_character()
+)
+See spec(...) for full column specifications.
+NAs introduced by coercionParsed with column specification:
+cols(
+  .default = col_integer(),
+  record_id = col_character(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  demographics_questionnaire_timestamp = col_datetime(format = \"\"),
+  demograph_date_preg = col_date(format = \"\"),
+  momrace_describe = col_character(),
+  educ_describe = col_character(),
+  employment_explain = col_character(),
+  mom_pob = col_character(),
+  mom_native_lang = col_character(),
+  primarylang = col_character(),
+  secondlang_type = col_character(),
+  marital_explain = col_character(),
+  partner_educ_describe = col_character(),
+  partner_employ_describe = col_character(),
+  partner_pob = col_character(),
+  ppl_in_home_describe = col_character(),
+  baby_race_describe = col_character(),
+  baby_pob = col_character()
+)
+See spec(...) for full column specifications.
+NAs introduced by coercionParsed with column specification:
+cols(
+  record_id = col_character(),
+  mom_dob = col_character(),
+  baby_sex = col_integer(),
+  baby_dob = col_character()
+)
+NAs introduced by coercionParsed with column specification:
+cols(
+  record_id = col_character(),
+  mom_dob = col_character(),
+  baby_sex = col_integer(),
+  baby_dob = col_character()
+)
+NAs introduced by coercionParsed with column specification:
+cols(
+  record_id = col_character(),
+  mom_dob = col_character(),
+  baby_dob = col_character()
+)
+NAs introduced by coercionJoining, by = c(\"ID\", \"baby_sex\")
+Parsed with column specification:
+cols(
+  record_id = col_integer(),
+  crf_date = col_character()
+)
+Parsed with column specification:
+cols(
+  record_id = col_integer(),
+  crf_date = col_character()
+)
+Joining, by = \"ID\"
+"

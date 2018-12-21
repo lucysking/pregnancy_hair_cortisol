@@ -1,0 +1,13 @@
+"0","```r
+#Libraries
+library(tidyverse)
+library(jtools)
+library(purrrlyr)
+#Parameters
+epds_preg_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/epds_preg_20180729.csv\"
+epds_newborn_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/epds_newborn_20180729.csv\"
+cesd_preg_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/cesd_preg_20180730.csv\"
+cesd_newborn_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/cesd_newborn_20180730.csv\"
+crisys_preg_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/crisys_preg_20180730.csv\"
+crisys_newborn_file <- \"~/Desktop/BABIES/preg_hair_cortisol/data/crisys_newborn_2080730.csv\"
+```"

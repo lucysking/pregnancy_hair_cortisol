@@ -1,0 +1,6 @@
+"0","hcc_wf %>% "
+"0","  group_by(pregnancy_stress) %>% "
+"0","  summarise_at("
+"0","    vars(sum_sev_childhood),"
+"0","    funs(mean, sd)"
+"0","  )"

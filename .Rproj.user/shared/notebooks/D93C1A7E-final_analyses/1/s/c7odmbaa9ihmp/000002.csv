@@ -1,0 +1,7 @@
+"0","```r
+babies %>% 
+  summarise_at(
+    vars(touch.P:touch_M), 
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```"

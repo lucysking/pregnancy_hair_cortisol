@@ -1,0 +1,8 @@
+"0","```r
+babies %>% 
+  filter(!is.na(mom_ethnicity)) %>% 
+  count(mom_ethnicity) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+```"

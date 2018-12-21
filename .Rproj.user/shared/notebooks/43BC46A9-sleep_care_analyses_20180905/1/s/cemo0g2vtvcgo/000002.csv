@@ -1,0 +1,58 @@
+"0","```r
+##actigraphy measures
+data_wf %>% 
+  count(!is.na(wake_time))
+
+data_wf %>% 
+  count(!is.na(wake_bouts))
+
+data_wf %>% 
+  summarise_at(
+    vars(wake_time, wake_bouts),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  summarise_at(
+    vars(wake_time, wake_bouts),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+##sleep diary measures
+data_wf %>% 
+  count(!is.na(WASO_min_infant))
+
+data_wf %>% 
+  count(!is.na(WASO_num_infant))
+
+data_wf %>% 
+  count(!is.na(Infant))
+
+data_wf %>% 
+  summarise_at(
+    vars(WASO_min_infant, WASO_num_infant, Infant),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  summarise_at(
+    vars(WASO_min_infant, WASO_num_infant, Infant),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+##sensitivity
+data_wf %>% 
+  summarise_at(
+    vars(sens_M),
+    funs(mean, sd), na.rm = TRUE
+  )
+
+data_wf %>% 
+  group_by(Condition) %>% 
+  summarise_at(
+    vars(sens_M),
+    funs(mean, sd), na.rm = TRUE
+  )
+```"

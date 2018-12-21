@@ -1,0 +1,28 @@
+"0","```r
+#Libraries
+library(tidyverse)
+library(psych)
+#Parameters
+stress_ratings_cs_file <- \"~/Desktop/BABIES/r01_winter_2019/data/cs6_LSCR_2018-11_12_18_rated_n76_cleaned.xlsx\"
+stress_ratings_long_file <- \"~/Desktop/BABIES/r01_winter_2019/data/long_preg_LSCR_2018-10-01_rated.xlsx\"
+#Functions
+winsorize <- function(df, value) {
+  value <- enquo(value)
+  df %>%
+    mutate(
+      value = case_when(
+        !!value > (mean(!!value, na.rm = TRUE) + (3 * sd(!!value, na.rm = TRUE))) ~
+        mean(!!value, na.rm = TRUE) + (3 * sd(!!value, na.rm = TRUE)),
+        !!value < (mean(!!value, na.rm = TRUE) - (3 * sd(!!value, na.rm = TRUE))) ~
+        mean(!!value, na.rm = TRUE) - (3 * sd(!!value, na.rm = TRUE)),
+        TRUE ~ !!value
+      )
+    )
+}
+calc_sev_childhood <- function(dev_stage, sev) { #childhood
+   if_else(
+    dev_stage == \"childhood\",
+    sev, NA_real_
+  )
+}
+```"

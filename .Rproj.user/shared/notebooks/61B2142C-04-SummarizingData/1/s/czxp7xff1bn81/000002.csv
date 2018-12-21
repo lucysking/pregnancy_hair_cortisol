@@ -1,0 +1,7 @@
+"0","NHANES_adult <-"
+"0","  NHANES %>% "
+"0","  drop_na(Age, Height) %>%"
+"0","  filter(Age > 17)"
+"0","NHANES_adult %>%"
+"0","  ggplot(aes(Height)) +"
+"0","  geom_histogram(aes(y = ..density..), binwidth = 1)"

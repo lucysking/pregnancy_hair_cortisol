@@ -1,0 +1,4 @@
+"0","NHANES_adult %>% "
+"0","  drop_na(Height) %>% "
+"0","  ggplot(aes(Height)) +"
+"0","  geom_histogram(aes(y = ..density..), binwidth = .1)"

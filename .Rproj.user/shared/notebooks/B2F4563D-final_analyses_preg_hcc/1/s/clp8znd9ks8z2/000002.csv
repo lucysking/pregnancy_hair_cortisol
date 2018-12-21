@@ -1,0 +1,116 @@
+"0","```r
+demo <- 
+  read_csv(demographics_file) %>% 
+  select(
+    ID = record_id,
+    mom_ethnicity, 
+    mom_race,
+    momrace_describe,
+    education,
+    educ_describe,
+    marital_status,
+    marital_explain,
+    annual_income,
+    ppl_in_home_adults,
+    ppl_in_home_allchild,
+    baby_sex
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    ppl_in_home = ppl_in_home_adults + ppl_in_home_allchild,
+    household_income = as.character(annual_income),
+    household_income_numeric = as.numeric(
+      recode(
+        annual_income,
+        \"1\" = \"2500\",
+        \"2\" = \"10000\",
+        \"3\" = \"22500\",
+        \"4\" = \"45000\",
+        \"5\" = \"75000\",
+        \"6\" = \"120000\",
+        \"7\" = \"150000\"
+      )
+    ),
+    #santa clara country low-income limit : 80% of median income (ratios <= 1 are therefore \"low income\")
+    #https://www.huduser.gov/portal/datasets/il/il2017/2017summary.odn
+    SC_lowincome_limit = as.numeric(
+      recode(
+        ppl_in_home,
+        \"1\" = \"59350\",
+        \"2\" = \"67800\",
+        \"3\" = \"76300\", 
+        \"4\" = \"84750\",
+        \"5\" = \"91500\",
+        \"6\" = \"98350\",
+        \"7\" = \"105100\",
+        \"8\" = \"111900\",
+        .default = \"111900\"
+      )
+    ),
+    income_needs = household_income_numeric / SC_lowincome_limit
+  ) %>% 
+  left_join(
+    read_csv(parity_file) %>% 
+      mutate(
+        ID = as.integer(ID),
+        primiparous = if_else(
+          preg_previous_prenatal == 1 &
+            preg_previous_abortion == 0 &
+            preg_previous_miscarriage == 0,
+          0, 1
+        )
+      ) %>% 
+      select(ID, primiparous),
+    by = \"ID\"
+  ) %>% 
+  left_join(
+    read_csv(mom_dob_file) %>%
+      mutate(
+        ID = as.integer(ID),
+        mom_dob = parse_date(mom_dob, format = \"%m/%d/%y\")
+      ) %>% 
+      select(ID, mom_dob),
+    by = \"ID\"
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_double(),
+  record_id = col_character(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_logical(),
+  demographics_questionnaire_timestamp = col_datetime(format = \"\"),
+  demograph_date_preg = col_date(format = \"\"),
+  momrace_describe = col_character(),
+  educ_describe = col_logical(),
+  employment_explain = col_logical(),
+  mom_pob = col_character(),
+  mom_native_lang = col_character(),
+  primarylang = col_character(),
+  secondlang_type = col_character(),
+  marital_explain = col_character(),
+  partner_educ_describe = col_logical(),
+  partner_employ_describe = col_character(),
+  partner_pob = col_character(),
+  ppl_in_home_describe = col_character(),
+  baby_race_describe = col_character(),
+  baby_pob = col_character()
+)
+See spec(...) for full column specifications.
+NAs introduced by coercionParsed with column specification:
+cols(
+  ID = col_double(),
+  preg_previous_prenatal = col_double(),
+  preg_previous_abortion = col_double(),
+  preg_previous_miscarriage = col_double(),
+  preg_previous_other = col_double(),
+  preg_prev_describe_prenatal = col_character()
+)
+Parsed with column specification:
+cols(
+  ID = col_character(),
+  mom_dob = col_character(),
+  baby_dob = col_character()
+)
+NAs introduced by coercion
+"

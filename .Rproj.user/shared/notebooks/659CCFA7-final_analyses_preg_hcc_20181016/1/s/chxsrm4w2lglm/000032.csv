@@ -1,0 +1,2 @@
+"0","set.seed(123)"
+"0","#confint.merMod(hc_trimester2, method = ""boot"", boot.type = ""perc"")"

@@ -1,0 +1,8 @@
+"0","#Libraries "
+"0","library(tidyverse)"
+"0","library(lme4)"
+"0","library(lmerTest)"
+"0","library(jtools)"
+"0","library(sjstats)"
+"0","#Parameters"
+"0","MDD_diagnosis_file <- ""~/Desktop/BABIES/preg_hair_cortisol/data/MDD_diagnosis.csv"""

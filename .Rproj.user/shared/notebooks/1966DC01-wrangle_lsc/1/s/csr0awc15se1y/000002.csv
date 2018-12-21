@@ -1,0 +1,100 @@
+"0","```r
+#identify life stages for each stressor
+lscr_6mo <-
+  lscr_6mo %>% 
+  mutate(
+    lscr_disas_lifestage = calc_preg_life_stage(
+      lscr_disas_age, lscr_disas_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_witacc_lifestage = calc_preg_life_stage(
+      lscr_witacc_age, lscr_witacc_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_acc_lifestage = calc_preg_life_stage(
+      lscr_acc_age, lscr_acc_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_famjail_lifestage = calc_preg_life_stage(
+      lscr_famjail_age, lscr_famjail_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_jail_lifestage = calc_preg_life_stage(
+      lscr_jail_age, lscr_jail_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_adopt_lifestage = calc_preg_life_stage(
+      lscr_adopt_age, lscr_adopt_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_pardivorce_lifestage = calc_preg_life_stage(
+      lscr_pardivorce_age, lscr_pardivorce_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_divorce_lifestage = calc_preg_life_stage(
+      lscr_divorce_age, lscr_divorce_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_money_lifestage = calc_preg_life_stage(
+      lscr_money_age, lscr_money_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_ill_lifestage = calc_preg_life_stage(
+      lscr_ill_age, lscr_ill_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_emoab_lifestage = calc_preg_life_stage(
+      lscr_emoab_age, lscr_emoab_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_physneg_lifestage = calc_preg_life_stage(
+      lscr_physneg_age, lscr_physneg_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_abort_lifestage = calc_preg_life_stage(
+      lscr_abort_age, lscr_abort_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_abort_lifestage = calc_preg_life_stage(
+      lscr_abort_age, lscr_abort_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_sepchild_lifestage = calc_preg_life_stage(
+      lscr_sepchild_age, lscr_sepchild_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_care_lifestage = calc_preg_life_stage(
+      lscr_care_age, lscr_care_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_death1_lifestage = calc_preg_life_stage(
+      lscr_death1_age, lscr_death1_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_death2_lifestage = calc_preg_life_stage(
+      lscr_death2_age, lscr_death2_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_famviol_lifestage = calc_preg_life_stage(
+      lscr_famviol_age, lscr_famviol_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_witmug_lifestage = calc_preg_life_stage(
+      lscr_witmug_age, lscr_witmug_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_mug_lifestage = calc_preg_life_stage(
+      lscr_mug_age, lscr_mug_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_physab_lifestage = calc_preg_life_stage(
+      lscr_physab_age, lscr_physab_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_domviol_lifestage = calc_preg_life_stage(
+      lscr_domviol_age, lscr_domviol_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_sexharas_lifestage = calc_preg_life_stage(
+      lscr_sexharas_age, lscr_sexharas_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_sextouch1_lifestage = calc_preg_life_stage(
+      lscr_sextouch1_age, lscr_sextouch1_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_sextouch2_lifestage = calc_preg_life_stage(
+      lscr_sextouch2_age, lscr_sextouch2_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_rape1_lifestage = calc_preg_life_stage(
+      lscr_rape1_age, lscr_rape1_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_rape2_lifestage = calc_preg_life_stage(
+      lscr_rape2_age, lscr_rape2_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_other1_lifestage = calc_preg_life_stage(
+      lscr_other1_age, lscr_other1_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_other2_lifestage = calc_preg_life_stage(
+      lscr_other2_age, lscr_other2_preg, mom_age_conception, mom_age_babydob
+    ),
+    lscr_other3_lifestage = calc_preg_life_stage(
+      lscr_other3_age, lscr_other3_preg, mom_age_conception, mom_age_babydob
+    )
+  ) 
+```"

@@ -1,0 +1,30 @@
+"0","hc_dep <-"
+"0","  hc %>% "
+"0","  left_join(cesd, by = ""ID"") %>% "
+"0","  left_join("
+"0","    read_csv(MDD_diagnosis_file),"
+"0","    by = ""ID"""
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  ID = col_double(),
+  MDD = col_character(),
+  MDD_past = col_double()
+)
+"
+"0","hc_dep_wf <-"
+"0","  hc_wf %>% "
+"0","  left_join(cesd, by = ""ID"") %>% "
+"0","  left_join("
+"0","    read_csv(MDD_diagnosis_file),"
+"0","    by = ""ID"""
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  ID = col_double(),
+  MDD = col_character(),
+  MDD_past = col_double()
+)
+"
+"0","hc_dep_wf %>% "
+"0","  count(!is.na(MDD_past))"

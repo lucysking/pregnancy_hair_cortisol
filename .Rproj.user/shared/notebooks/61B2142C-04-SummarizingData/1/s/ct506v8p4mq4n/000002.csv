@@ -1,0 +1,18 @@
+"0","PhysActive_table_filtered <- "
+"0","  NHANES %>%"
+"0","  drop_na(PhysActive) %>%"
+"0","  select(PhysActive) %>%"
+"0","  group_by(PhysActive) %>%"
+"0","  summarize(AbsoluteFrequency = n()) %>%"
+"0","  mutate(RelativeFrequency = AbsoluteFrequency / sum(AbsoluteFrequency))"
+"0","pander(PhysActive_table_filtered)"
+"1","
+----------------------------------------------------
+ PhysActive   AbsoluteFrequency   RelativeFrequency 
+------------ ------------------- -------------------
+     No             2473               0.4542       
+
+    Yes             2972               0.5458       
+----------------------------------------------------
+
+"

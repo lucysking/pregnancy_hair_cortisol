@@ -1,0 +1,143 @@
+"0","```r
+epds <-
+  read_csv(epds_preg_file) %>%
+  rename(ID = record_id) %>%
+  select(
+    -redcap_event_name:-epds_timestamp,
+    -epds_complete
+  ) %>%
+  mutate_at(
+    vars(
+      epds_3,
+      epds_5:epds_10
+    ),
+    funs(
+      . %>%
+        recode(
+          \"3\" = 0,
+          \"2\" = 1,
+          \"1\" = 2,
+          \"0\" = 3
+        )
+    )
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    epds_total_preg = mean(
+      c(
+        epds_1, 
+        epds_2, 
+        epds_3, 
+        epds_4, 
+        epds_5, 
+        epds_6, 
+        epds_7,
+        epds_8,
+        epds_9,
+        epds_10
+      ),
+      na.rm = TRUE
+    ) * 10
+  ) %>% 
+  select(
+    ID, 
+    epds_total_preg
+  ) %>% 
+  left_join(
+    read_csv(epds_newborn_file) %>% 
+      rename(ID = record_id) %>%
+      select(
+        -redcap_event_name:-epds_timestamp,
+        -epds_complete
+      ) %>%
+      mutate(
+        ID = as.character(ID)
+      ) %>% 
+      mutate_at(
+        vars(
+          epds_3,
+          epds_5:epds_10
+        ),
+        funs(
+          . %>%
+            recode(
+              \"3\" = 0,
+              \"2\" = 1,
+              \"1\" = 2,
+              \"0\" = 3
+            )
+        )
+      ) %>% 
+      group_by(ID) %>% 
+      mutate(
+        epds_total_newborn = as.double(
+          mean(
+            c(
+              epds_1, 
+              epds_2, 
+              epds_3, 
+              epds_4, 
+              epds_5, 
+              epds_6, 
+              epds_7,
+              epds_8,
+              epds_9,
+              epds_10
+            ),
+            na.rm = TRUE
+          )
+        ) * 10
+      ) %>% 
+      select(
+        ID, 
+        epds_total_newborn
+      ),
+    by = \"ID\"
+  ) %>% 
+  mutate(
+    epds_mean = (epds_total_preg + epds_total_newborn) / 2, 
+    epds_max = max(epds_total_preg, epds_total_newborn),
+    epds_max = if_else(
+      is.na(epds_total_newborn), 
+      epds_total_preg, epds_max
+    )
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  record_id = col_character(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  epds_timestamp = col_character(),
+  epds_1 = col_integer(),
+  epds_2 = col_integer(),
+  epds_3 = col_integer(),
+  epds_4 = col_integer(),
+  epds_5 = col_integer(),
+  epds_6 = col_integer(),
+  epds_7 = col_integer(),
+  epds_8 = col_integer(),
+  epds_9 = col_integer(),
+  epds_10 = col_double(),
+  epds_complete = col_integer()
+)
+Parsed with column specification:
+cols(
+  record_id = col_integer(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  epds_timestamp = col_datetime(format = \"\"),
+  epds_1 = col_integer(),
+  epds_2 = col_integer(),
+  epds_3 = col_integer(),
+  epds_4 = col_integer(),
+  epds_5 = col_integer(),
+  epds_6 = col_integer(),
+  epds_7 = col_integer(),
+  epds_8 = col_integer(),
+  epds_9 = col_integer(),
+  epds_10 = col_character(),
+  epds_complete = col_integer()
+)
+Unreplaced values treated as NA as .x is not compatible. Please specify replacements exhaustively or supply .default
+"

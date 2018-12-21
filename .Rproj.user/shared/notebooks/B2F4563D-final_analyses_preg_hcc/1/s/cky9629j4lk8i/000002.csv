@@ -1,0 +1,86 @@
+"0","hc_questions <-"
+"0","  read_csv(hair_questions_file) %>% "
+"0","  rename("
+"0","    ID = record_id,"
+"0","    timepoint = redcap_event_name"
+"0","  ) %>% "
+"0","  mutate("
+"0","    ID = as.integer(ID),"
+"0","    steroid = if_else("
+"0","      is.na(steroid),"
+"0","      0, as.double(steroid)"
+"0","    ),"
+"0","    timepoint = str_replace(timepoint, ""_arm_1"", """"),"
+"0","    timepoint = if_else("
+"0","      timepoint == ""neonatal"","
+"0","      ""newborn"", timepoint"
+"0","    ),"
+"0","    hair_dye_weeks = case_when("
+"0","      hair_dye_when_unit == ""years"" ~ hair_dye_when * 52,"
+"0","      hair_dye_when_unit == ""months"" ~ hair_dye_when * 4,"
+"0","      hair_dye_when_unit == ""weeks"" ~ hair_dye_when,"
+"0","      hair_dye_when_unit == ""days"" ~ hair_dye_when / 7"
+"0","    )"
+"0","  ) %>% "
+"0","  select("
+"0","    -hair_questions_timestamp"
+"0","  ) %>% "
+"0","  select("
+"0","    ID,"
+"0","    timepoint, "
+"0","    hair_dye_weeks,"
+"0","    steroid"
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  record_id = col_double(),
+  redcap_event_name = col_character(),
+  hair_questions_timestamp = col_character(),
+  hair_dye = col_double(),
+  hair_dye_when = col_double(),
+  hair_dye_when_unit = col_character(),
+  steroid = col_double()
+)
+"
+"0","hc_covariates <-"
+"0","  read_csv(hair_cort_covariates_file) %>% "
+"0","  select("
+"0","    ID,"
+"0","    preg_cigarettes_prenatal,"
+"0","    bmi_preg"
+"0","  ) %>% "
+"0","  mutate("
+"0","    smoking_prenatal = if_else("
+"0","      preg_cigarettes_prenatal > 1,"
+"0","      1, 0"
+"0","    )"
+"0","  ) %>% "
+"0","  left_join("
+"0","    read_csv(delivery_questions_file), by = ""ID"""
+"0","  ) %>% "
+"0","  mutate("
+"0","    labor_mode = as.factor("
+"0","      recode("
+"0","        labor_mode,"
+"0","        ""1"" = ""vaginal/instrument"","
+"0","        ""2"" = ""c-section"","
+"0","        ""3"" = ""vaginal/instrument"""
+"0","      )"
+"0","    )"
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  .default = col_double(),
+  mom_height = col_character(),
+  perscription_type = col_character(),
+  substance_type_prenatal = col_character()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"2","Parsed with column specification:
+cols(
+  ID = col_double(),
+  labor_mode = col_double()
+)
+"

@@ -1,0 +1,4 @@
+"0","hc %>% "
+"0","  count(ID, timepoint) %>% "
+"0","  spread(timepoint, n) %>% "
+"0","  filter(!is.na(newborn))"

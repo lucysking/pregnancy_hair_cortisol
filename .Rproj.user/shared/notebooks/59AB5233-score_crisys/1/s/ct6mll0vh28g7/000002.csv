@@ -1,0 +1,4 @@
+"0","#Libraries"
+"0","library(tidyverse)"
+"0","#Paramaters"
+"0","crisys_preg_file <- ""~/Desktop/BABIES/preg_hair_cortisol/data/crisys_preg_20180730.csv"""

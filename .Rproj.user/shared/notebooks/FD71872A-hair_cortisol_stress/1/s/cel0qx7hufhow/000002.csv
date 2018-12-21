@@ -1,0 +1,116 @@
+"0","```r
+cesd <-
+  read_csv(
+    cesd_preg_file
+  ) %>% 
+  rename(ID = record_id) %>%
+  select(
+    -redcap_event_name:-cesd_timestamp,
+    -cesd_complete
+  ) %>%
+  mutate_at(
+    vars(cesd_4, cesd_8, cesd_12, cesd_16),
+    funs(
+      . %>%
+        recode(\"3\" = 0, \"2\" = 1, \"1\" = 2, \"0\" = 3)
+    )
+  )  %>% 
+  group_by(ID) %>%
+  mutate(
+    cesd_total_preg = mean(
+      c(
+        cesd_1,
+        cesd_2,
+        cesd_3,
+        cesd_4,
+        cesd_5,
+        cesd_6,
+        cesd_7,
+        cesd_8,
+        cesd_9,
+        cesd_10,
+        cesd_11,
+        cesd_12,
+        cesd_13,
+        cesd_14,
+        cesd_15,
+        cesd_16,
+        cesd_17,
+        cesd_18,
+        cesd_19,
+        cesd_20
+      ),
+      na.rm = TRUE
+    ) * 20
+  ) %>% 
+  select(ID, cesd_total_preg) %>% 
+  left_join(
+    read_csv(
+      cesd_newborn_file
+    ) %>% 
+      rename(ID = record_id) %>%
+      select(
+        -redcap_event_name:-cesd_timestamp,
+        -cesd_complete
+      ) %>% 
+      mutate_at(
+        vars(cesd_4, cesd_8, cesd_12, cesd_16),
+        funs(
+          . %>%
+            recode(\"3\" = 0, \"2\" = 1, \"1\" = 2, \"0\" = 3)
+        )
+      )  %>% 
+      group_by(ID) %>%
+      mutate(
+        cesd_total_newborn = mean(
+          c(
+            cesd_1,
+            cesd_2,
+            cesd_3,
+            cesd_4,
+            cesd_5,
+            cesd_6,
+            cesd_7,
+            cesd_8,
+            cesd_9,
+            cesd_10,
+            cesd_11,
+            cesd_12,
+            cesd_13,
+            cesd_14,
+            cesd_15,
+            cesd_16,
+            cesd_17,
+            cesd_18,
+            cesd_19,
+            cesd_20
+          ),
+          na.rm = TRUE
+        ) * 20
+      ),
+    by = \"ID\"
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    ID = as.character(ID),
+    cesd_mean = (cesd_total_preg + cesd_total_newborn) / 2,
+    cesd_max = max(cesd_total_preg, cesd_total_newborn)
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  cesd_timestamp = col_character()
+)
+See spec(...) for full column specifications.
+Parsed with column specification:
+cols(
+  .default = col_integer(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  cesd_timestamp = col_datetime(format = \"\")
+)
+See spec(...) for full column specifications.
+"

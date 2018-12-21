@@ -1,0 +1,79 @@
+"0","```r
+touch <-
+  read_csv(maternal_touch_file) %>% 
+  rename(
+    ID = ID_idnum,
+    episode = Episode_episode,
+    ep_onset = Episode_onset,
+    ep_offset = Episode_offset,
+    touch_code = Maternal_Touch_mtouch,
+    touch_onset = Maternal_Touch_onset,
+    touch_offset = Maternal_Touch_offset
+  ) %>% 
+  filter(
+    !is.na(episode), 
+    #touch_code != 9,
+    episode != \"SF1\",
+    episode != \"SF2\"
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    episode_dur = (ep_offset - ep_onset) / 1000, #convert to seconds
+    code_dur = (touch_offset - touch_onset) / 1000
+    #touch_dur = touch_code * code_dur
+  ) %>% 
+  group_by(ID, episode, episode_dur, touch_code) %>% 
+  summarise(
+    code_dur = sum(code_dur, na.rm = TRUE)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    code_prop = code_dur / episode_dur
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  ID_idnum = col_character(),
+  Episode_episode = col_character(),
+  Episode_onset = col_integer(),
+  Episode_offset = col_integer(),
+  Maternal_Touch_mtouch = col_integer(),
+  Maternal_Touch_onset = col_integer(),
+  Maternal_Touch_offset = col_integer()
+)
+"
+"0","```r
+touch_wf <-
+  touch %>% 
+  select(-episode_dur, -code_dur) %>% 
+  spread(episode, code_prop) %>% 
+  rename(
+    touch.P = \"P\",
+    touch.R1 = \"R1\",
+    touch.R2 = \"R2\"
+  ) %>% 
+  mutate(
+    touch.P = if_else(
+      touch_code == 9 & touch.P > .05,
+      NA_real_, touch.P
+    ),
+    touch.R1 = if_else(
+      touch_code == 9 & touch.R1 > .05,
+      NA_real_, touch.R1
+    ),
+    touch.R2 = if_else(
+      touch_code == 9 & touch.R2 > .05,
+      NA_real_, touch.R2
+    )
+  ) %>% 
+  filter(touch_code == 1) %>% 
+  select(-touch_code) %>% 
+  group_by(ID) %>% 
+  mutate(
+    touch_M = mean(
+      c(touch.P, touch.R1, touch.R2),
+      na.rm = TRUE
+    )
+  ) %>% 
+  ungroup()
+```"

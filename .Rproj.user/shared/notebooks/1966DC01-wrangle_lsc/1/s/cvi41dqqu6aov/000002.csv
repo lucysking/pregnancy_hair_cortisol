@@ -1,0 +1,27 @@
+"0","```r
+lscr_T1lg_6mocs <- 
+  lscr_preg %>% 
+  select(
+    ID, redcap_event_name,
+    num_stress_total:pregnancy_stress,
+    sum_subsev_preg:max_sev_preg,
+    sum_subsev_childhood:maltreated,
+    sum_subsev_precon:max_sev_precon
+  ) %>% 
+  bind_rows(
+    lscr_6mo %>% 
+      select(
+        ID, redcap_event_name,
+        num_stress_total:pregnancy_stress,
+        sum_sev_childhood:maltreated,
+        sum_sev_precon:max_sev_precon,
+        sum_sev_postnatal
+      )
+  ) 
+lscr_T1lg_6mocs <- 
+  lscr_T1lg_6mocs %>% 
+  winsorize(sum_sev_childhood) %>% 
+  rename(sum_sev_child_win = value) %>% 
+  winsorize(sum_sev_precon) %>% 
+  rename(sum_sev_precon_win = value)
+```"

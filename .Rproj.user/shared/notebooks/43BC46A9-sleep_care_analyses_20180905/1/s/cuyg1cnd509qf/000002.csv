@@ -1,0 +1,57 @@
+"0","```r
+data_wf <-
+  free_play_wf %>% 
+  left_join(
+    read_csv(intervention_file) %>% 
+      mutate(
+        ID = as.numeric(ID),
+        Condition = if_else(
+          Condition == \"ABTi\",
+          \"ABTI\", Condition
+        )
+      ),
+    by = \"ID\"
+  ) %>%  
+  left_join(questionnaires, by = \"ID\") %>% 
+  left_join(actigraphy_wf, by = \"ID\") %>% 
+  left_join(
+    readxl::read_xlsx(demographics_file, sheet = \"Demographics_02.15.18\") %>% 
+      select(
+        ID,
+        mom_dob = DOB,
+        latino = Eth_latino,
+        race = Race,
+        education = Education,
+        income = Income
+      ),
+    by = \"ID\"
+  ) %>% 
+  left_join(
+    readxl::read_xlsx(duke_file, sheet = \"Sheet1\") %>%
+      select(ID, `Meets Insomnia Criteria?`) %>% 
+      rename(duke_insomnia = `Meets Insomnia Criteria?`),
+    by = \"ID\"
+  ) %>% 
+  left_join(sleep_diary_wf, by = \"ID\")  %>% 
+  left_join(
+    read_csv(freeplay_date_file) %>% 
+      mutate(
+        date_fp = parse_date(date_fp, format = \"%m/%d/%y\")
+      ),
+    by = \"ID\"
+  ) %>% 
+  mutate(
+    mom_age = (mom_dob %--% date_fp) / years(1)
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  ID = col_character(),
+  Condition = col_character()
+)
+NAs introduced by coercionParsed with column specification:
+cols(
+  ID = col_integer(),
+  date_fp = col_character()
+)
+"

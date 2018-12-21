@@ -1,0 +1,5 @@
+"0","hcc_wf <-"
+"0","  hc_wf %>% "
+"0","  left_join(demo, by = ""ID"") %>% "
+"0","  left_join(hc_covariates, by = ""ID"") %>% "
+"0","  left_join(lscr_preg, by = ""ID"") "

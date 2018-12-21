@@ -1,0 +1,3 @@
+"0","hc %>% "
+"0","  ggplot(aes(hc_trimlog, color = trimester)) +"
+"0","  geom_freqpoly(aes(y = ..density..), binwidth = 1)"

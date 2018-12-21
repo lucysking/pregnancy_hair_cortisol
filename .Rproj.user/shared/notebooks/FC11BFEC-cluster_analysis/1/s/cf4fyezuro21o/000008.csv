@@ -1,0 +1,8 @@
+"0","```r
+babies %>% 
+  filter(!is.na(income_needs)) %>% 
+  count(income_needs < 1) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+```"

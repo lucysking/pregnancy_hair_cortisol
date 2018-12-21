@@ -1,0 +1,7 @@
+"0","```r
+babies %>% 
+  summarise_at(
+    vars(mom_age, baby_age_visit, baby_age_lena),
+    funs(mean, sd), na.rm = TRUE
+  )
+```"

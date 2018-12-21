@@ -1,0 +1,40 @@
+"0","##Libraries"
+"0","library(tidyverse)"
+"0","library(plotly)"
+"2","
+Attaching package: ‘plotly’
+
+"
+"2","The following object is masked from ‘package:ggplot2’:
+
+    last_plot
+
+"
+"2","The following object is masked from ‘package:stats’:
+
+    filter
+
+"
+"2","The following object is masked from ‘package:graphics’:
+
+    layout
+
+"
+"0","library(corrr)"
+"0","library(factoextra)"
+"0","library(stats)"
+"0","library(cluster)"
+"0","library(fpc)"
+"0","library(clustertend)"
+"0","Sys.setenv(""plotly_username"" = ""lucysking"")"
+"0","Sys.setenv(""plotly_api_key"" = ""iK2A6KPtZdfRbloLCHdq"")"
+"0","##Parameters"
+"0","demo_6months_file <- ""~/Desktop/BABIES/neglect_perspective/data/BABIES6months_demo_20180910.csv"""
+"0","demo_longitudinal_file <- ""~/Desktop/BABIES/neglect_perspective/data/LongitudinalBABIES_demo_20180911.csv"""
+"0","dob_6months_file <- ""~/Desktop/BABIES/neglect_perspective/data/BABIES6Months_dob_20190911.csv"""
+"0","dob_longitudinal_file <- ""~/Desktop/BABIES/neglect_perspective/data/LongitudinalBABIES_dob_20180911.csv"""
+"0","visit_date_6months_file <- ""~/Desktop/BABIES/neglect_perspective/data/BABIES6months_visit_date.csv"""
+"0","visit_date_longitudinal_file <- ""~/Desktop/BABIES/neglect_perspective/data/LongitudinalBABIES_visit_date.csv"""
+"0","lena_fu_6months_file <- ""~/Desktop/BABIES/neglect_perspective/data/BABIES6months_LENA_followup_20180910.csv"""
+"0","lena_fu_longitudinal_file <- ""~/Desktop/BABIES/neglect_perspective/data/LongitudinalBABIES_LENA_followup_20180911.csv"""
+"0","maternal_touch_file <- ""~/Desktop/BABIES/neglect_perspective/data/SFP_mtouch_20180913.csv"""

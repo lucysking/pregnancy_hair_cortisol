@@ -1,0 +1,4 @@
+"0","```r
+lscr_6mo %>% 
+  count(num_stress_preg)
+```"

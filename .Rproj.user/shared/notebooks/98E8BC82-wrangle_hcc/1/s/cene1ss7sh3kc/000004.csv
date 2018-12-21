@@ -1,0 +1,4 @@
+"0","hc %>% "
+"0","  ggplot(aes(seg_week, hc_trimlog)) +"
+"0","  geom_point() +"
+"0","  geom_smooth(method = ""lm"")"

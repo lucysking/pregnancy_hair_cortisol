@@ -1,0 +1,65 @@
+"0","```r
+calc_sev_postnatal <- function(life_stage, sev) {
+   case_when(
+    life_stage == \"postnatal\" ~ sev,
+    TRUE ~ NA_real_
+  )
+}
+lscr_6mo <-
+  lscr_6mo %>% 
+  mutate(
+    sev_postnat_disas = calc_sev_postnatal(lscr_disas_lifestage, sev_con_disas),
+    sev_postnat_witacc = calc_sev_postnatal(lscr_witacc_lifestage, sev_con_witacc),
+    sev_postnat_acc = calc_sev_postnatal(lscr_acc_lifestage, sev_con_acc),
+    sev_postnat_famjail = calc_sev_postnatal(lscr_famjail_lifestage, sev_con_famjail),
+    sev_postnat_jail = calc_sev_postnatal(lscr_jail_lifestage, sev_con_jail),
+    sev_postnat_adopt = calc_sev_postnatal(lscr_adopt_lifestage, sev_con_adopt),
+    sev_postnat_pardivorce = calc_sev_postnatal(lscr_pardivorce_lifestage, sev_con_pardivorce),
+    sev_postnat_divorce = calc_sev_postnatal(lscr_divorce_lifestage, sev_con_divorce),
+    sev_postnat_money = calc_sev_postnatal(lscr_money_lifestage, sev_con_money),
+    sev_postnat_ill = calc_sev_postnatal(lscr_ill_lifestage, sev_con_ill),
+    sev_postnat_emoab = calc_sev_postnatal(lscr_emoab_lifestage, sev_con_emoab),
+    sev_postnat_abort = calc_sev_postnatal(lscr_abort_lifestage, sev_con_abort),
+    sev_postnat_sep = calc_sev_postnatal(lscr_sepchild_lifestage, sev_con_sepchild),
+    sev_postnat_care = calc_sev_postnatal(lscr_care_lifestage, sev_con_care),
+    sev_postnat_death1 = calc_sev_postnatal(lscr_death1_lifestage, sev_con_death1),
+    sev_postnat_death2 = calc_sev_postnatal(lscr_death2_lifestage, sev_con_death2),
+    sev_postnat_famviol = calc_sev_postnatal(lscr_famviol_lifestage, sev_con_famviol),
+    sev_postnat_witmug = calc_sev_postnatal(lscr_witmug_lifestage, sev_con_witmug),
+    sev_postnat_mug = calc_sev_postnatal(lscr_mug_lifestage, sev_con_mug),
+    sev_postnat_physab = calc_sev_postnatal(lscr_physab_lifestage, sev_con_physab),
+    sev_postnat_domviol = calc_sev_postnatal(lscr_domviol_lifestage, sev_con_domviol),
+    sev_postnat_sexharas = calc_sev_postnatal(lscr_sexharas_lifestage, sev_con_sexharas),
+    sev_postnat_sextouch1 = calc_sev_postnatal(lscr_sextouch1_lifestage, sev_con_sextouch1),
+    sev_postnat_sextouch2 = calc_sev_postnatal(lscr_sextouch2_lifestage, sev_con_sextouch2),
+    sev_postnat_rape1 = calc_sev_postnatal(lscr_rape1_lifestage, sev_con_rape1),
+    sev_postnat_rape2 = calc_sev_postnatal(lscr_rape2_lifestage, sev_con_rape2),
+    sev_postnat_other1 = calc_sev_postnatal(lscr_other1_lifestage, sev_con_other1),
+    sev_postnat_other2 = calc_sev_postnatal(lscr_other2_lifestage, sev_con_other2),
+    sev_postnat_other3 = calc_sev_postnatal(lscr_other2_lifestage, sev_con_other2)
+  )
+postnatal_6mo_sev_vars <-
+  lscr_6mo %>% 
+  select(contains(\"sev_postnat\")) %>% 
+  names()
+lscr_6mo <-
+  lscr_6mo %>% 
+  mutate(
+    sum_sev_postnatal = 
+      pmap_dbl(
+        select(., postnatal_6mo_sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    max_sev_postnatal = 
+      pmap_dbl(
+        select(., postnatal_6mo_sev_vars),
+        function(...) max(c(...), na.rm = TRUE)
+      ),
+    max_sev_postnatal = if_else(
+      max_sev_postnatal == -Inf,
+      0, max_sev_postnatal
+    )
+  )
+```"
+"1","no non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Inf
+"

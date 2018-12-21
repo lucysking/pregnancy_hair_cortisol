@@ -1,0 +1,440 @@
+---
+title: "Wrangle Pregnancy Hair Cortisol Data"
+output: html_notebook
+---
+
+```{r}
+#Libraries
+library(tidyverse)
+library(lubridate)
+
+#Parameters
+
+##files__________________________________________________________
+
+hair_cortisol_file_1 <- "~/Desktop/BABIES/preg_hair_cortisol/data/assay_results_20170803.xlsx"
+
+hair_cortisol_file_2 <- "~/Desktop/BABIES/preg_hair_cortisol/data/assay_results_20180726.xlsx"
+
+dates_file <- "~/Desktop/BABIES/preg_hair_cortisol/data/hair_collection_dates_20180729.xlsx"
+
+confounds_file_preg <- "~/Desktop/BABIES/preg_hair_cortisol/data/hair_confounds_preg_20180730.csv"
+```
+
+
+#Read in data 
+
+##Hair cortisol results: August 2017
+```{r}
+hc_1 <- 
+  readxl::read_xlsx(hair_cortisol_file_1, skip = 6) %>% 
+  rename(
+    hc_value = starts_with("cort")
+  ) %>% 
+  select(
+    ID = `external ID`,
+    hc_value,
+    comments,
+    -`internal ID`,
+    -`weight          (mg)`
+  ) %>% 
+  mutate(
+    ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+    ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+    ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+    ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+    timepoint = if_else(
+      str_detect(ID, pattern = "-2") == TRUE,
+      "newborn", "pregnancy"
+    ),
+    ID = str_replace(ID, pattern = "-2", "")
+  ) %>% 
+  group_by(ID, timepoint) %>% 
+  mutate(
+    segment = 1:n(),
+    hc_value = as.double(hc_value)
+  ) %>% 
+  ungroup() %>% 
+  select(
+    ID, 
+    timepoint,
+    segment,
+    hc_value,
+    comments
+  )
+```
+
+##Hair cortisol results: July 2018
+```{r}
+hc_2 <- 
+  readxl::read_xlsx(hair_cortisol_file_2, skip = 9) %>% 
+  rename(
+    hc_value = starts_with("cort")
+  ) %>% 
+  select(
+    ID = `external ID`,
+    segment = Segment,
+    hc_value,
+    comments,
+    -`weight          (mg)`
+  ) %>% 
+  mutate(
+    ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+     ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+     ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+     ID = if_else(
+      is.na(ID), 
+      lag(ID), ID
+    ),
+    timepoint = if_else(
+      str_detect(ID, pattern = "_T2") == TRUE,
+      "newborn", "pregnancy"
+    ),
+    ID = str_replace(ID, pattern = "_T\\d", ""),
+    hc_value = as.double(hc_value),
+    segment = segment
+  ) %>% 
+  select(
+    ID, 
+    timepoint,
+    segment,
+    hc_value,
+    comments
+  )
+```
+
+##Merge hair cortisol files
+We have N = 58 mothers with data from at least one hair sample (pregnancy or newborn). 
+
+```{r}
+hc <-
+  bind_rows(hc_1, hc_2) %>% 
+  mutate(ID = as.integer(ID))
+  
+hc %>% 
+  distinct(ID) %>% 
+  count()
+
+hc <- 
+  hc %>% 
+  filter(is.na(comments) | comments == "checked") #removing 6 observations where hair was not enough for accurate value
+
+hc %>% 
+  distinct(ID) %>% 
+  count()
+
+hc %>% 
+  count(ID, timepoint) %>% 
+  spread(timepoint, n) %>% 
+  count(!is.na(pregnancy))
+
+hc %>% 
+  count(ID, timepoint) %>% 
+  spread(timepoint, n) %>% 
+  count(!is.na(newborn))
+
+hc %>% 
+  count(ID, timepoint) %>% 
+  spread(timepoint, n) %>% 
+  filter(!is.na(newborn))
+
+
+hc %>% 
+  count(ID, timepoint) %>% 
+  spread(timepoint, n) %>% 
+  count(!is.na(newborn), !is.na(pregnancy))
+```
+
+##Merge with dates
+```{r}
+hc <-
+  hc %>% 
+  left_join(
+    readxl::read_xlsx(dates_file) %>%
+      mutate(
+        ID = as.integer(ID)
+      ),
+    by = "ID"
+  ) %>% 
+  group_by(ID) %>% 
+  mutate(
+    weeks_preg = 40 - ((date_t1_hair %--% baby_duedate) / weeks(1)), #gestational weeks at time of collection
+    weeks_preg = if_else(
+      timepoint == "newborn",
+      40 + ((baby_dob %--% date_t2_hair) / weeks(1)), weeks_preg
+    ),
+    weeks_preg_birth = 40 + (baby_dob %--% baby_duedate) / weeks(1), #gestational age of baby at time of birth
+    seg_week = case_when(
+      segment == 1 ~ weeks_preg,
+      segment == 2 ~ weeks_preg - 4,
+      segment == 3 ~ weeks_preg - 8,
+      segment == 4 ~ weeks_preg - 12,
+      segment == 5 ~ weeks_preg - 16
+    ),
+    trimester =  case_when(
+      seg_week <= 12 ~ "First",
+      seg_week > 12 & seg_week <= 26 ~ "Second",
+      seg_week > 26 ~ "Third"
+    ),
+    MDD_pastcurr = recode(
+      MDD,
+      "past" = "past/current",
+      "current" = "past/current",
+      "subclinical" = "past/current",
+      "current + past" = "past/current",
+      "current+past" = "past/current",
+      "none" = "none",
+      .default = NA_character_
+    )
+  ) %>% 
+  filter(seg_week > 0, (seg_week <= weeks_preg_birth | is.na(weeks_preg_birth))) %>% #filter to only include values covering pregnancy
+  ungroup()
+
+hc %>% 
+  filter(segment == 1, timepoint == "pregnancy") %>% 
+  summarise(
+    mean_weeks = mean(weeks_preg, na.rm = TRUE),
+    sd_weeks = sd(weeks_preg, na.rm = TRUE),
+    min_weeks = min(weeks_preg, na.rm = TRUE),
+    max_weeks = max(weeks_preg, na.rm = TRUE)
+  )
+```
+
+
+```{r}
+hc_timepoint <-
+  hc %>% 
+  mutate(ID = as.factor(ID)) %>% 
+  select(
+    ID,
+    timepoint,
+    seg_week
+  ) %>% 
+  mutate(
+    seg_week_preg = if_else(
+      timepoint == "pregnancy",
+      seg_week, NA_real_
+    )
+  )
+
+
+hc_timepoint %>% 
+  ggplot(
+    aes(
+      seg_week, 
+      fct_reorder2(ID, seg_week_preg, seg_week, .desc = FALSE), 
+      color = fct_rev(timepoint)
+    )
+  ) +
+  geom_vline(xintercept = 12) +
+  geom_vline(xintercept = 26) +
+  geom_point() +
+  geom_path() +
+  scale_x_continuous(breaks = seq.int(0, 40, 5)) +
+  scale_color_manual(
+    labels = c("T1", "T2"),
+    values = c("#2c7fb8", "#253494")
+  ) +
+  theme_bw() +
+  theme(
+    axis.ticks.y = element_blank(),
+    axis.text.y = element_blank(),
+    panel.grid = element_blank(),
+    panel.border = element_blank(),
+    axis.title = element_text(size = 26),
+    axis.text = element_text(size = 22),
+    legend.text = element_text(size = 18),
+    aspect.ratio = .7
+  ) +
+  labs(
+    color = NULL,
+    x = "Week of pregnancy",
+    y = ""
+  )
+
+ggsave("~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/collection_timepoints.png")
+```
+
+# Transform and trim data 
+```{r}
+hc <-
+  hc %>% 
+  group_by(trimester) %>% 
+  mutate(
+    hc_log = log(hc_value),
+    hc_trimlog = case_when(
+      hc_log > mean(hc_log, na.rm = TRUE) + (3 * (sd(hc_log, na.rm = TRUE))) ~ #trimming within trimester
+      NA_real_,
+      hc_log < mean(hc_log, na.rm = TRUE) - (3 * (sd(hc_log, na.rm = TRUE))) ~
+      NA_real_,
+      TRUE ~ hc_log
+    )
+  ) %>% 
+  ungroup()
+
+hc %>% 
+  ggplot(aes(hc_value)) +
+  geom_histogram(binwidth = 5)
+
+hc %>% 
+  ggplot(aes(hc_log)) +
+  geom_histogram(binwidth = .5)
+
+hc %>% 
+  ggplot(aes(hc_trimlog)) +
+  geom_histogram(binwidth = .5)
+```
+
+#Summarise data by trimester
+```{r}
+hc %>% 
+  group_by(trimester) %>% 
+  filter(!is.na(hc_trimlog)) %>% 
+  summarise_at(
+    vars(hc_value, hc_log, hc_trimlog),
+    funs(n(), mean, sd)
+  )
+
+hc %>% 
+  distinct(ID, trimester) %>% 
+  count(trimester)
+
+hc %>% 
+  ggplot(aes(hc_trimlog, color = trimester)) +
+  geom_freqpoly(aes(y = ..density..), binwidth = 1)
+
+hc %>% 
+  ggplot(aes(trimester, hc_trimlog)) +
+  geom_violin(draw_quantiles = c(.5)) +
+  geom_jitter(alpha = 1/2, size = 2) +
+  scale_y_continuous(breaks = seq.int(-2, 5, 1)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 24),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Trimester",
+    y = "log(HCC) (pg/mg)"
+  )
+
+ggsave("~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/cort_trimester_violin.jpg")
+
+hc %>% 
+  ggplot(aes(trimester, hc_trimlog)) +
+  geom_jitter(alpha = 1/2, size = 2) +
+  geom_boxplot() +
+  scale_y_continuous(breaks = seq.int(-2, 5, 1)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 24),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Trimester",
+    y = "log(HCC) (pg/mg)"
+  )
+
+hc %>% 
+  group_by(trimester) %>% 
+  summarise_at(
+    vars(hc_trimlog),
+    funs(mean, sd), na.rm = TRUE
+  ) %>% 
+  ggplot(aes(trimester, mean)) +
+  geom_col()
+```
+
+#Visualize change across pregnancy
+```{r}
+hc %>% 
+  ggplot(aes(seg_week, hc_trimlog)) +
+  geom_point() +
+  geom_smooth(method = "loess")
+
+
+hc %>% 
+  ggplot(aes(seg_week, hc_trimlog)) +
+  geom_line(
+    aes(
+      seg_week, 
+      hc_trimlog, 
+      group = ID
+    ),
+    color = "blue",
+    alpha = 1/4
+  ) +
+  geom_smooth(method = "loess", se = FALSE, size = 3, color = "blue") +
+  scale_y_continuous(breaks = seq.int(-2, 5, 1)) +
+  scale_x_continuous(breaks = seq.int(0, 40, 5)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 24),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Week of pregnancy",
+    y = "log(HCC) (pg/mg)"
+  )
+
+ggsave("~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/cort_trajectory_ID.png")
+```
+
+```{r}
+hc_weekspregT1 <-
+  hc %>% 
+  filter(timepoint == "pregnancy") %>% 
+  distinct(ID, weeks_preg) %>% 
+  rename(weeks_preg_T1 = weeks_preg)
+
+hc_weekspregT2 <-
+  hc %>% 
+  filter(timepoint == "newborn") %>% 
+  distinct(ID, weeks_preg) %>% 
+  rename(weeks_preg_T2 = weeks_preg)
+
+hc <-
+  hc %>% 
+  left_join(hc_weekspregT1, by = "ID") %>% 
+  left_join(hc_weekspregT2, by = "ID")
+
+hc_wf <-
+  hc %>% 
+  group_by(ID, trimester) %>% 
+  summarise(
+    mean_hc = mean(hc_trimlog, na.rm = TRUE)
+  ) %>% 
+  spread(trimester, mean_hc) %>% 
+  left_join(hc_weekspregT1, by = "ID") %>% 
+  left_join(hc_weekspregT2, by = "ID") %>% 
+  ungroup()
+```
+
+

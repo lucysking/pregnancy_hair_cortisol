@@ -1,0 +1,75 @@
+"0","```r
+N_6mo <- n_distinct(lscr_6mo$ID)
+lscr_table_6mo <-
+  lscr_6mo %>% 
+  select(
+    sev_vars_6mo
+  ) %>% 
+  gather(type, rating, sev_con_disas:sev_con_other3) %>% 
+  group_by(type) %>% 
+  count(endorsed = !is.na(rating)) %>% 
+  ungroup() %>% 
+  filter(endorsed) %>% 
+  mutate(
+    type = str_replace(type, \"sev_con_\", \"\")
+  ) %>% 
+  select(-endorsed)
+types_names_6mo <-
+  lscr_table_6mo %>% 
+  select(type) %>% 
+  mutate(type = as.factor(type)) %>% 
+  pull(type) %>% 
+  levels()
+lscr_table_6mo %>% 
+  mutate(
+    type = factor(
+      type,
+      levels = types_names_6mo,
+      labels = c(
+        \"abortion or miscarriage\",
+        \"accident (self)\",
+        \"adoption or foster care\",
+        \"caretaker for close other\",
+        \"sudden death of close other\",
+        \"expected death of close other\",
+        \"disaster\",
+        \"divorce (self)\",
+        \"domestic violence (adulthood)\",
+        \"emotional abuse\",
+        \"arrest/imprisonment of family\",
+        \"domestic violence (childhood)\",
+        \"serious physical illness (self)\",
+        \"arrest/imprisonment (self)\",
+        \"financial problems\",
+        \"robbed/mugged/attacked (self)\",
+        \"other 1 (anything additional)\",
+        \"other (happened to close other)\",
+        \"other 2 (anything additional)\",
+        \"parental separation/divorce\",
+        \"physical abuse\",
+        \"physical neglect\",
+        \"rape (childhood)\",
+        \"rape (adulthood)\",
+        \"sexual harassment\",
+        \"other sexual assault (childhood)\",
+        \"other sexual assault (adulthood)\",
+        \"witnessed accident\",
+        \"witnessed robbery/mugging/attack\"
+      )
+    ),
+    type = fct_collapse(
+      type,
+      `other (anything additional)` = c(
+        \"other 1 (anything additional)\", 
+        \"other 2 (anything additional)\"
+      )
+    )
+  ) %>% 
+  group_by(type) %>% 
+  summarise(
+    n = sum(n),
+    `proportion endorsed` = round(n / N_6mo, 2) 
+  ) %>% 
+  arrange(desc(n)) %>% 
+  knitr::kable()
+```"

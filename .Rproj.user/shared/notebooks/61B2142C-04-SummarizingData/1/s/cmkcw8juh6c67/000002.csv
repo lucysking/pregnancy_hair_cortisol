@@ -1,0 +1,39 @@
+"0","SleepHrsNight_table_filtered <- "
+"0","  NHANES %>%"
+"0","  drop_na(SleepHrsNight) %>%"
+"0","  select(SleepHrsNight) %>%"
+"0","  group_by(SleepHrsNight) %>%"
+"0","  summarize(AbsoluteFrequency = n()) %>%"
+"0","  mutate("
+"0","    RelativeFrequency = AbsoluteFrequency / sum(AbsoluteFrequency),"
+"0","    Percentage = RelativeFrequency * 100"
+"0","  )"
+"0","pander(SleepHrsNight_table_filtered)"
+"1","
+--------------------------------------------------------------------
+ SleepHrsNight   AbsoluteFrequency   RelativeFrequency   Percentage 
+--------------- ------------------- ------------------- ------------
+       2                 9               0.001787          0.1787   
+
+       3                49               0.009732          0.9732   
+
+       4                200               0.03972          3.972    
+
+       5                406               0.08064          8.064    
+
+       6               1172               0.2328           23.28    
+
+       7               1394               0.2769           27.69    
+
+       8               1405                0.279            27.9    
+
+       9                271               0.05382          5.382    
+
+      10                97                0.01927          1.927    
+
+      11                15               0.002979          0.2979   
+
+      12                17               0.003376          0.3376   
+--------------------------------------------------------------------
+
+"

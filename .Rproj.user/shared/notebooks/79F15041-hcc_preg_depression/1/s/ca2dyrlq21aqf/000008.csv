@@ -1,0 +1,16 @@
+"0","hc_cesd_JN <- lmer(hc_trimlog ~ seg_week * cesd_total_preg + weeks_preg+ (seg_week|ID), data = hc_dep)"
+"0","johnson_neyman(hc_cesd_JN, pred = cesd_total_preg, modx = seg_week)"
+"1","[1m[4mJOHNSON-NEYMAN INTERVAL[24m[22m"
+"1"," "
+"1","
+
+"
+"1","When seg_week is [7mOUTSIDE[27m the interval [-103.14, 27.01], the slope of
+cesd_total_preg is p < .05."
+"1","
+
+"
+"1","[3mNote: The range of observed values of seg_week is [23m[0.14, 42.00]"
+"1","
+
+"

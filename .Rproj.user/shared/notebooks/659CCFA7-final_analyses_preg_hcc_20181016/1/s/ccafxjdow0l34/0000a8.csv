@@ -1,0 +1,3 @@
+"0","hcc_wf %>% "
+"0","  count(primiparous) %>% "
+"0","  mutate(per = n / sum(n))"

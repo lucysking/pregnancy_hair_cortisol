@@ -1,0 +1,1047 @@
+---
+title: "Final analyses"
+output: html_notebook
+---
+
+```{r}
+#Libraries
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(modelr)
+library(jtools)
+library(sjstats)
+library(effsize)
+
+#Parameters
+hair_cort_covariates_file <-
+  "~/Desktop/BABIES/preg_hair_cortisol/data/haircort_controlvariables_2018102.csv"
+hair_questions_file <- 
+  "~/Desktop/BABIES/preg_hair_cortisol/data/hair_questions_cleaned_20180924.csv"
+delivery_questions_file <- 
+  "~/Desktop/BABIES/preg_hair_cortisol/data/delivery_variables_20181012.csv"
+demographics_file <- 
+  "~/Desktop/BABIES/preg_hair_cortisol/data/LongitudinalBABIES_demo_20180911.csv"
+parity_file <- 
+  "~/Desktop/BABIES/preg_hair_cortisol/data/parity_longitudinalbabies_20181017.csv"
+mom_dob_file <-  
+  "~/Desktop/BABIES/preg_hair_cortisol/data/LongitudinalBABIES_dob_20180911.csv"
+```
+
+# Read in confound/covariate data
+```{r}
+hc_questions <-
+  read_csv(hair_questions_file) %>% 
+  rename(
+    ID = record_id,
+    timepoint = redcap_event_name
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    steroid = if_else(
+      is.na(steroid),
+      0, as.double(steroid)
+    ),
+    timepoint = str_replace(timepoint, "_arm_1", ""),
+    timepoint = if_else(
+      timepoint == "neonatal",
+      "newborn", timepoint
+    ),
+    hair_dye_weeks = case_when(
+      hair_dye_when_unit == "years" ~ hair_dye_when * 52,
+      hair_dye_when_unit == "months" ~ hair_dye_when * 4,
+      hair_dye_when_unit == "weeks" ~ hair_dye_when,
+      hair_dye_when_unit == "days" ~ hair_dye_when / 7
+    )
+  ) %>% 
+  select(
+    -hair_questions_timestamp
+  ) %>% 
+  select(
+    ID,
+    timepoint, 
+    hair_dye_weeks,
+    steroid
+  )
+
+hc_covariates <-
+  read_csv(hair_cort_covariates_file) %>% 
+  select(
+    ID,
+    preg_cigarettes_prenatal,
+    bmi_preg
+  ) %>% 
+  mutate(
+    smoking_prenatal = if_else(
+      preg_cigarettes_prenatal > 1,
+      1, 0
+    )
+  ) %>% 
+  left_join(
+    read_csv(delivery_questions_file), by = "ID"
+  ) %>% 
+  mutate(
+    labor_mode = as.factor(
+      recode(
+        labor_mode,
+        "1" = "vaginal/instrument",
+        "2" = "c-section",
+        "3" = "vaginal/instrument"
+      )
+    )
+  )
+
+
+```
+
+# Read in demographic data 
+```{r}
+demo <- 
+  read_csv(demographics_file) %>% 
+  select(
+    ID = record_id,
+    mom_ethnicity, 
+    mom_race,
+    momrace_describe,
+    education,
+    educ_describe,
+    marital_status,
+    marital_explain,
+    annual_income,
+    ppl_in_home_adults,
+    ppl_in_home_allchild,
+    baby_sex
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    ppl_in_home = ppl_in_home_adults + ppl_in_home_allchild,
+    household_income = as.character(annual_income),
+    household_income_numeric = as.numeric(
+      recode(
+        annual_income,
+        "1" = "2500",
+        "2" = "10000",
+        "3" = "22500",
+        "4" = "45000",
+        "5" = "75000",
+        "6" = "120000",
+        "7" = "150000"
+      )
+    ),
+    #santa clara country low-income limit : 80% of median income (ratios <= 1 are therefore "low income")
+    #https://www.huduser.gov/portal/datasets/il/il2017/2017summary.odn
+    SC_lowincome_limit = as.numeric(
+      recode(
+        ppl_in_home,
+        "1" = "59350",
+        "2" = "67800",
+        "3" = "76300", 
+        "4" = "84750",
+        "5" = "91500",
+        "6" = "98350",
+        "7" = "105100",
+        "8" = "111900",
+        .default = "111900"
+      )
+    ),
+    income_needs = household_income_numeric / SC_lowincome_limit
+  ) %>% 
+  left_join(
+    read_csv(parity_file) %>% 
+      mutate(
+        ID = as.integer(ID),
+        primiparous = if_else(
+          preg_previous_prenatal == 1 &
+            preg_previous_abortion == 0 &
+            preg_previous_miscarriage == 0,
+          0, 1
+        )
+      ) %>% 
+      select(ID, primiparous),
+    by = "ID"
+  ) %>% 
+  left_join(
+    read_csv(mom_dob_file) %>%
+      mutate(
+        ID = as.integer(ID),
+        mom_dob = parse_date(mom_dob, format = "%m/%d/%y")
+      ) %>% 
+      select(ID, mom_dob),
+    by = "ID"
+  )
+```
+
+## Join with long-form
+```{r}
+hcc <-
+  hc %>% 
+  left_join(hc_covariates, by = "ID") %>% 
+  left_join(hc_questions, by = c("ID", "timepoint")) %>% 
+  left_join(demo, by = "ID") %>% 
+  mutate(
+    hair_dye_weeks_preg = weeks_preg - hair_dye_weeks,
+    hair_dye_preg = case_when(
+      hair_dye_weeks_preg < 0 | hair_dye_weeks_preg > 40 ~ 0,
+      is.na(hair_dye_weeks_preg) ~ 0,
+      TRUE ~ 1
+    ),
+    mom_age = (mom_dob %--% date_t1_hair) / years(1)
+  ) %>% 
+  mutate(
+    weeks_preg_cent = scale(weeks_preg, scale = FALSE)
+  )
+```
+
+### Count hair confounds
+```{r}
+hcc_wf <-
+  hc_wf %>% 
+  left_join(hc_covariates, by = "ID") 
+
+hcc_wf %>% 
+  count(labor_mode)
+
+hcc_wf %>% 
+  count(smoking_prenatal)
+
+hcc_wf %>% 
+ summarise_at(
+    vars(bmi_preg),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+```
+
+```{r}
+hcc_wf <-
+  hc_wf %>% 
+  left_join(demo, by = "ID") %>% 
+  left_join(hc_covariates, by = "ID") %>% 
+  left_join(lscr_preg, by = "ID") 
+```
+
+```{r}
+hcc_wf %>% 
+  mutate(
+    weeks_T1toT2 = weeks_preg_T2 - weeks_preg_T1
+  ) %>% 
+  summarise_at(
+    vars(weeks_preg_T1, weeks_preg_T2, weeks_T1toT2),
+    funs(mean, sd), na.rm = TRUE
+  )
+```
+
+# Demographic characteristics
+```{r}
+hcc %>% 
+  distinct(ID, mom_age) %>% 
+  summarise_at(
+    vars(mom_age),
+    funs(mean, sd)
+  )
+
+hcc_wf %>% 
+  count(mom_ethnicity) %>% 
+  mutate(per = n / sum(n))
+  
+hcc_wf %>% 
+  count(mom_race) %>% 
+  mutate(per = n / sum(n)) %>% 
+  arrange(desc(per))
+
+hcc_wf %>% 
+  count(annual_income) %>% 
+  mutate(per = n / sum(n)) %>% 
+  arrange(desc(annual_income))
+
+hcc_wf %>% 
+  count(income_needs < 1) %>% 
+  mutate(per = n / sum(n))
+
+hcc_wf %>% 
+  count(primiparous) %>% 
+  mutate(per = n / sum(n))
+```
+
+# Associations among measures/demographics
+```{r}
+hcc_wf %>% 
+  group_by(pregnancy_stress) %>% 
+  summarise_at(
+    vars(sum_sev_childhood),
+    funs(mean, sd)
+  )
+
+t.test(hcc_wf$sum_sev_childhood ~ hcc_wf$pregnancy_stress)
+
+t.test(hcc_wf$sum_sev_childhood ~ hcc_wf$primiparous)
+chisq.test(hcc_wf$primiparous, hcc_wf$pregnancy_stress)
+
+t.test(hcc_wf$weeks_preg_T1 ~ hcc_wf$pregnancy_stress)
+t.test(hcc_wf$weeks_preg_T2 ~ hcc_wf$pregnancy_stress)
+
+cor.test(hcc_wf$weeks_preg_T1, hcc_wf$sum_sev_childhood)
+cor.test(hcc_wf$weeks_preg_T2, hcc_wf$sum_sev_childhood)
+
+cor.test(hcc_wf$bmi_preg, hcc_wf$sum_sev_childhood)
+t.test(hcc_wf$bmi_preg ~ hcc_wf$pregnancy_stress)
+
+##missingness
+hcc_wf <-
+  hcc_wf %>% 
+  mutate(
+    missing = if_else(
+      !is.na(weeks_preg_T1) & !is.na(weeks_preg_T2),
+      0, 1
+    )
+  )
+
+t.test(hcc_wf$sum_sev_childhood ~ hcc_wf$missing)
+chisq.test(hcc_wf$missing, hcc_wf$pregnancy_stress)
+```
+
+# Examine washout effects
+
+First, I filtered to examine "overlapping" samples from pregnancy and newborn timepoints by selecting the most proximal segment at pregnancy and the most distal segment at newborn and then selecting the subset of participants (N = 12) for whom the newborn sample was dated (in gestational weeks) as no longer than 2 weeks after the pregnancy sample. 
+
+These overlapping samples were highly correlated (r = .9) but the pregnancy samples were, on average, higher than the newborn samples. 
+
+## Wrangle and summarize 
+```{r washout_effects}
+hc_time_wf <-
+  hc %>% 
+  select(
+    ID, 
+    timepoint,
+    hc_log,
+    segment,
+    seg_week
+  ) %>% 
+  filter(
+    (segment == 1 & timepoint == "pregnancy") |
+    (segment == 5 & timepoint == "newborn")
+  ) %>% 
+  select(-segment) %>% 
+  gather(variable, value, hc_log:seg_week) %>% 
+  unite(temp, variable, timepoint) %>% 
+  spread(temp, value) %>% 
+  mutate(
+    overlap = if_else(
+      (seg_week_newborn - seg_week_pregnancy) < 2, 
+      "yes", "no"
+    )
+  )
+
+hc_time_wf %>% 
+  count(overlap)
+
+hc_time_overlap <-
+  hc_time_wf %>% 
+  filter(overlap == "yes")
+
+hc_time_overlap %>% 
+  summarise_at(
+    vars(hc_log_pregnancy, hc_log_newborn, seg_week_newborn, seg_week_pregnancy),
+    funs(mean, sd),
+    na.rm = TRUE
+  )
+```
+
+## Test and plot
+```{r}
+cor.test(hc_time_overlap$hc_log_newborn, hc_time_overlap$hc_log_pregnancy)
+t.test(
+  hc_time_overlap$hc_log_newborn, 
+  hc_time_overlap$hc_log_pregnancy, 
+  paired = TRUE
+)
+cohen.d(
+  hc_time_overlap$hc_log_newborn, 
+  hc_time_overlap$hc_log_pregnancy, 
+  paired = TRUE
+)
+
+hc_time_overlap %>% 
+  mutate(
+    diff = hc_log_pregnancy - hc_log_newborn
+  ) %>% 
+  summarise(
+    mean_diff_log = mean(diff),
+    sd_diff_log = sd(diff),
+    mean_diff_exp = exp(mean(diff)),
+    sd_diff_exp = sd(exp(diff))
+  )
+
+hc_time_overlap %>% 
+  ggplot(aes(hc_log_pregnancy, hc_log_newborn)) +
+  geom_point(size = 4) +
+  geom_smooth(method = "lm", size = 3) +
+  scale_y_continuous(breaks = seq.int(-1, 5, 1)) +
+  scale_x_continuous(breaks = seq.int(0, 5, 1)) +
+  theme_minimal() +
+  theme(
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 24)
+  ) +
+  labs(
+    x = "log(HCC) at 30 weeks: proximal",
+    y = "log(HCC) at 30 weeks: distal"
+  )
+
+ggsave(
+  "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/distal_proximal.png",
+  width = 7,
+  height = 6
+)
+```
+
+## Filter distal newborn samples
+
+```{r}
+overlap_IDs <- 
+  hc_time_overlap %>% 
+  select(ID) %>% 
+  pull()
+
+hcc <-
+  hcc %>% 
+  mutate(
+    hc_trimlog = if_else(
+      ID %in% overlap_IDs & 
+        timepoint == "newborn" &
+        segment == 5,
+      NA_real_, hc_trimlog
+    )
+  ) 
+```
+
+
+# Base model
+
+```{r base_model}
+hc_0 <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = 
+    hcc
+)
+summary(hc_0)
+
+std_beta(hc_0)
+set.seed(123)
+#confint.merMod(hc_0, method = "boot", boot.type = "perc")
+
+hc_0_poly <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_0_poly)
+
+hcc_1thru4 <-
+  hcc %>% 
+  filter(segment < 5)
+
+hc_0_sens <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = 
+    hcc_1thru4
+)
+summary(hc_0_sens)
+
+std_beta(hc_0_sens)
+#confint.merMod(hc_0_sens, method = "boot", boot.type = "perc")
+```
+
+#Trimester effects -- mixed anova
+```{r}
+hcc <-
+  hcc %>% 
+  mutate(trimester = as.factor(trimester))
+
+contrasts(hcc$trimester) = cbind(c(0,1,0), c(0,0,1)) #first is baseline
+
+hc_trimester1 <- lmer(
+  hc_trimlog ~ 
+    trimester + 
+    weeks_preg_cent + 
+    (trimester|ID), 
+  data = hcc
+)
+summary(hc_trimester1)
+
+anova(hc_trimester1, type = 3)
+
+std_beta(hc_trimester1)
+set.seed(123)
+#confint.merMod(hc_trimester1, method = "boot", boot.type = "perc")
+
+contrasts(hcc$trimester) = cbind(c(1,0,0), c(0,0,1)) #second is baseline
+hc_trimester2 <- lmer(
+  hc_trimlog ~ 
+    trimester + 
+    weeks_preg_cent + 
+    (trimester|ID), 
+  data = hcc
+)
+summary(hc_trimester2)
+
+std_beta(hc_trimester2)
+set.seed(123)
+#confint.merMod(hc_trimester2, method = "boot", boot.type = "perc")
+```
+
+# Examine covariates
+
+## hair dye, cigarettes, and steroid use
+```{r dye_steroid}
+#create datasets without confounds
+hc_sens_dye <-
+  hcc %>% 
+  filter(hair_dye_preg == 0)
+
+hc_sens_steroid <-
+  hcc %>% 
+  filter(steroid == 0)
+
+hc_sens_smoking <-
+  hcc %>% 
+  filter(smoking_prenatal == 0 | is.na(smoking_prenatal))
+
+hcc_mode_sens <-
+  hcc %>% 
+  filter(labor_mode == "vaginal/instrument")
+
+#hair dye
+hc_dye_sens <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hc_sens_dye
+)
+summary(hc_dye_sens)
+
+#steroids
+hc_steroid_sens <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hc_sens_steroid
+)
+summary(hc_steroid_sens)
+
+#smoking
+hc_smoking_sens <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hc_sens_smoking
+)
+summary(hc_smoking_sens)
+
+#delivery mode sensitivity analysis
+hc_mode_sens <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc_mode_sens
+)
+summary(hc_mode_sens)
+```
+
+## Covariate effects of BMI, parity
+
+No main effects or interactive effects of BMI. 
+
+```{r smoking}
+hc_bmi <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    bmi_preg + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_bmi)
+
+hc_bmiX <- lmer(
+  hc_trimlog ~ 
+    seg_week * bmi_preg + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_bmiX)
+
+hc_child <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    primiparous + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_child)
+
+hc_childX <- lmer(
+  hc_trimlog ~ seg_week * primiparous + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childX)
+```
+
+#Effects of Stress
+```{r stress_data}
+hcc <-
+  hcc %>% 
+  left_join(
+    lscr_preg %>% 
+      select(
+        ID,
+        sum_sev_childhood,
+        sum_sev_childhood_win,
+        pregnancy_stress
+      ),
+    by = "ID"
+  ) %>% 
+  mutate(
+    pregnancy_stress = as.factor(pregnancy_stress),
+    sum_sev_child_cent = scale(sum_sev_childhood_win, scale = FALSE)
+  )
+
+```
+
+##Save residuals to data
+```{r obtain_residuals}
+hcc_trim <-
+  hcc %>% 
+  filter(!is.na(hc_trimlog))
+
+hc_resid <- lmer(
+  hc_trimlog ~  
+    weeks_preg_cent +
+    (1|ID),
+  data = hcc_trim
+)
+
+hcc_trim <- 
+  hcc_trim %>% 
+  mutate(
+    hcc_resid = resid(hc_resid)
+  ) 
+```
+
+#Pregnancy stress
+```{r pregnancy_trauma}
+contrasts(hcc$pregnancy_stress) = c(0, 1) #none is baseline
+
+hc_preg <- lmer(
+  hc_trimlog ~ 
+    seg_week * pregnancy_stress + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_preg)
+
+hc_preg2_none <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * pregnancy_stress + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_preg2_none)
+
+std_beta(hc_preg2_none)
+set.seed(123)
+#confint.merMod(hc_preg2_none, method = "boot", boot.type = "perc")
+
+contrasts(hcc$pregnancy_stress) = c(1, 0) #yes is baseline
+hc_preg2_some <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * pregnancy_stress + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_preg2_some)
+
+std_beta(hc_preg2_some)
+set.seed(123)
+#confint.merMod(hc_preg2_some, method = "boot", boot.type = "perc")
+
+##visualize
+hcc_trim %>% 
+  filter(!is.na(pregnancy_stress)) %>% 
+  ggplot(
+    aes(
+      seg_week, 
+      hcc_resid, 
+      color = pregnancy_stress, 
+      fill = pregnancy_stress
+    )
+  ) +
+  geom_smooth(
+    method = "lm", 
+    formula = y ~ poly(x,2), 
+    se = TRUE,
+    size = 5
+  ) +
+  ylim(-1, 1) +
+  #scale_y_continuous(breaks = seq.int(-1, 1, .5)) +
+  scale_x_continuous(breaks = seq.int(0, 40, 5)) +
+  scale_color_manual(
+    name = "Pregnancy stress",
+    labels = c("Absent", "Present"),
+    values = c("#999999", "#56B4E9")
+  ) +
+  scale_fill_manual(
+    name = "Pregnancy stress",
+    labels = c("Absent", "Present"),
+    values = c("#999999", "#56B4E9")
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 32),
+    legend.text = element_text(size = 26),
+    axis.title = element_text(size = 38),
+    axis.text = element_text(size = 32),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Week of pregnancy",
+    y = "residual log(HCC) (pg/mg)"
+  )
+
+ggsave(
+  "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/pregtrauma_hcc.png",
+  width = 10,
+  height = 10
+  )
+```
+
+## Childhood severity
+```{r childhood_trauma}
+#centered with linear term
+hc_childsev <- lmer(
+  hc_trimlog ~ 
+    seg_week * sum_sev_child_cent + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childsev)
+
+#centered with linear and quadratic term
+hc_childsev2 <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * sum_sev_child_cent + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childsev2)
+
+std_beta(hc_childsev2)
+set.seed(123)
+#confint.merMod(hc_childsev2, method = "boot", boot.type = "perc")
+
+##simple effects
+sum_sev_childhood_win_10 <-
+  quantile(hcc$sum_sev_childhood_win, .10 , na.rm = TRUE)
+
+sum_sev_childhood_win_50 <-
+  quantile(hcc$sum_sev_childhood_win, .50 , na.rm = TRUE)
+
+sum_sev_childhood_win_90 <-
+  quantile(hcc$sum_sev_childhood_win, .90 , na.rm = TRUE)
+
+hcc <-
+  hcc %>% 
+  mutate(
+    sum_sev_child_lo = sum_sev_childhood_win - sum_sev_childhood_win_10,
+    sum_sev_child_hi = sum_sev_childhood_win - sum_sev_childhood_win_90
+  )
+
+#low stress severity
+hc_childsev2_lo <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * sum_sev_child_lo + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childsev2_lo)
+
+std_beta(hc_childsev2_lo)
+set.seed(123)
+#confint.merMod(hc_childsev2_lo, method = "boot", boot.type = "perc")
+
+#high stress severity
+hc_childsev2_hi <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * sum_sev_child_hi + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childsev2_hi)
+
+std_beta(hc_childsev2_hi)
+set.seed(123)
+#confint.merMod(hc_childsev2_hi, method = "boot", boot.type = "perc")
+
+##visualize
+hcc_trim <-
+  hcc_trim %>% 
+  mutate(
+    sev_child_grp = if_else(
+      sum_sev_childhood_win > sum_sev_childhood_win_50,
+      "high", "low"
+    )
+  )
+
+hcc_trim %>% 
+  filter(!is.na(sev_child_grp)) %>% 
+  ggplot(
+    aes(
+      seg_week, 
+      hcc_resid, 
+      color = fct_reorder(sev_child_grp, sum_sev_childhood),
+      fill = fct_reorder(sev_child_grp, sum_sev_childhood)
+    )
+  ) +
+  ylim(-1.5, 1.5) +
+  geom_smooth(
+    method = "lm", 
+    formula = y ~ poly(x,2), 
+    se = TRUE,
+    size = 4
+  ) +
+  scale_x_continuous(breaks = seq.int(0, 40, 5)) +
+  scale_color_manual(
+    name = "Childhood stress severity",
+    labels = c("Lower", "Higher"),
+    values = c("blue", "red")
+  ) +
+  scale_fill_manual(
+    name = "Childhood stress severity",
+    labels = c("Lower", "Higher"),
+    values = c("blue", "red")
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 32),
+    legend.text = element_text(size = 26),
+    axis.title = element_text(size = 38),
+    axis.text = element_text(size = 32),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Week of pregnancy",
+    y = "residual log(HCC) (pg/mg)"
+  )
+
+ggsave(
+  "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/childsev_hcc.png",
+  width = 10,
+  height = 10
+  )
+```
+
+###post-hoc: johnson-neyman, when does the slope of HCC become significant?
+```{r}
+hcc <-
+  hcc %>% 
+  mutate(
+    seg_week_squared = seg_week^2
+  )
+
+hc_childsev_JN <- lmer(
+  hc_trimlog ~ 
+    seg_week * sum_sev_childhood + 
+    seg_week_squared * sum_sev_childhood + 
+    weeks_preg + 
+    (seg_week|ID), 
+  data = hcc
+)
+
+johnson_neyman(hc_childsev_JN, pred = sum_sev_childhood, modx = seg_week)
+johnson_neyman(hc_childsev_JN, pred = sum_sev_childhood, modx = seg_week_squared)
+sqrt(530.44)
+```
+
+
+###post-hoc: during which trimester(s) is childhood stress severity associated with HCC?
+```{r when_trauma}
+hcc_first <-
+  hcc %>% 
+  filter(trimester == "First")
+
+hc_child_first <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    sum_sev_child_cent + 
+    weeks_preg_cent + 
+    (1|ID), 
+  data = hcc_first
+)
+summary(hc_child_first)
+
+hcc_second <-
+  hcc %>% 
+  filter(trimester == "Second")
+
+hc_child_second <- 
+  lmer(
+    hc_trimlog ~ 
+      seg_week + 
+      sum_sev_child_cent + 
+      weeks_preg_cent + 
+      (seg_week|ID), 
+    data = hcc_second
+  )
+summary(hc_child_second)
+
+std_beta(hc_child_second)
+set.seed(123)
+#confint.merMod(hc_child_second, method = "boot", boot.type = "perc")
+
+
+hcc_third <-
+  hcc %>% 
+  filter(trimester == "Third")
+
+hc_child_third <- lmer(
+  hc_trimlog ~ 
+    seg_week + 
+    sum_sev_child_cent + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc_third
+)
+summary(hc_child_third)
+
+##all trimesters
+hc_child_all <- 
+  lmer(
+    hc_trimlog ~ 
+      seg_week + 
+      sum_sev_child_cent + 
+      weeks_preg_cent + 
+      (seg_week|ID), 
+    data = hcc
+  )
+summary(hc_child_all)
+```
+
+## Unique contributions of childhood stress severity and pregnancy stress to trajectory of HCC
+```{r}
+hc_childsev_pregstress <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * sum_sev_child_cent + 
+    poly(seg_week, 2) * pregnancy_stress + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_childsev_pregstress)
+
+std_beta(hc_childsev_pregstress)
+#confint.merMod(hc_childsev_pregstress, method = "boot", boot.type = "perc")
+```
+
+
+## Visualize individual slopes of HCC prior to following 23 weeks gestation
+```{r}
+hcc_trim %>%
+  filter(
+    !is.na(sev_child_grp),
+    seg_week < 23
+  ) %>% 
+  ggplot(aes(seg_week, hcc_resid)) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    aes(
+      color = fct_rev(sev_child_grp),
+      group = factor(ID)
+    )
+  ) +
+  geom_smooth(
+    data = hcc_trim %>% 
+      filter(
+        !is.na(sev_child_grp),
+        seg_week > 23
+      ),
+    method = "lm",
+    se = FALSE,
+    aes(
+      color = fct_rev(sev_child_grp),
+      group = factor(ID)
+    )
+  ) +
+  geom_vline(xintercept = 23, linetype = "dashed") +
+  scale_x_continuous(breaks = seq.int(0, 40, 5)) +
+  scale_color_manual(
+    name = "Childhood stress severity",
+    labels = c("Lower", "Higher"),
+    values = c("red", "blue")
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_text(size = 32),
+    legend.text = element_text(size = 26),
+    axis.title = element_text(size = 38),
+    axis.text = element_text(size = 32),
+    aspect.ratio = .75
+  ) +
+  labs(
+    x = "Week of pregnancy",
+    y = "residual log(HCC) (pg/mg)"
+  )
+
+ggsave(
+  "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/plots/childsev_ID_hcc.png",
+  width = 10,
+  height = 10
+  )
+```
+
+## Controlling for income-to-needs
+```{r}
+#centered with linear and quadratic term
+hcc <-
+  hcc %>% 
+  mutate(
+    INR_cent = scale(income_needs, scale = FALSE)
+  )
+
+hc_inr2 <- lmer(
+  hc_trimlog ~ 
+    poly(seg_week, 2) * sum_sev_child_cent +
+    poly(seg_week, 2) * income_needs + 
+    weeks_preg_cent + 
+    (seg_week|ID), 
+  data = hcc
+)
+summary(hc_inr2)
+std_beta(hc_inr2)
+```
+

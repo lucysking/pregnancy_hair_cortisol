@@ -1,0 +1,20 @@
+"0","```r
+babies %>% 
+  count(!is.na(percent_mother)) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+  
+babies %>% 
+  filter(!is.na(percent_mother)) %>% 
+  summarise_at(
+    vars(percent_mother),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+babies %>% 
+  summarise_at(
+    vars(duration, AWC_rate, CTC_rate, TV.Pct),
+    funs(mean, sd, min, max)
+  )
+```"

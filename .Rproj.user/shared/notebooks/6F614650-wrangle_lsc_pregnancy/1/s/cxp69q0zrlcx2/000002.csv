@@ -1,0 +1,5 @@
+"0","#Libraries"
+"0","library(tidyverse)"
+"0","library(psych)"
+"0","#Parameters"
+"0","stress_ratings_long_file <- ""~/Desktop/BABIES/r01_winter_2019/data/long_preg_LSCR_2018-10-01_rated.xlsx"""

@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1545434928722.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2176409974",
+    "id" : "3EE5BC4C",
+    "lastKnownWriteTime" : 1545435067,
+    "last_content_update" : 1545435068004,
+    "path" : "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/pregnancy_hair_cortisol/final_analyses_preg_hcc.Rmd",
+    "project_path" : "final_analyses_preg_hcc.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "922,1",
+        "scrollLine" : "896",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

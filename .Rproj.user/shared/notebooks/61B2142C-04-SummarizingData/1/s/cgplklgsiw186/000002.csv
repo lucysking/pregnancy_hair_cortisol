@@ -1,0 +1,18 @@
+"0","PhysActive_table <- "
+"0","  NHANES %>%"
+"0","  select(PhysActive) %>%"
+"0","  group_by(PhysActive) %>%"
+"0","  summarize(AbsoluteFrequency = n())"
+"0","pander(PhysActive_table)"
+"1","
+--------------------------------
+ PhysActive   AbsoluteFrequency 
+------------ -------------------
+     No             2473        
+
+    Yes             2972        
+
+     NA             1334        
+--------------------------------
+
+"

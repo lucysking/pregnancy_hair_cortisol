@@ -1,0 +1,23 @@
+"0","```r
+lscr_preg <- 
+  readxl::read_xlsx(stress_ratings_long_file) %>% 
+  rename(ID = record_id) %>% 
+  mutate_at(
+    vars(contains(\"preg\"), \"ID\"),
+    as.integer
+  ) %>%
+  mutate_at(
+    vars(contains(\"Sev\")),
+    as.double
+  ) %>% 
+  left_join(
+    dates %>% 
+      select(
+        ID,
+        baby_due_date,
+        mom_age_conception,
+        mom_age_babydob
+      ),
+    by = \"ID\"
+  )
+```"

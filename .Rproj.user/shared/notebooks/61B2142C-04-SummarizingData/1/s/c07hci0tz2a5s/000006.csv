@@ -1,0 +1,11 @@
+"0","waittimes <- "
+"0","  read_csv(""data/04/sfo_wait_times_2017.csv"")"
+"2","Parsed with column specification:
+cols(
+  `6` = col_integer()
+)
+"
+"0","names(waittimes) <- c(""waittime"")"
+"0","waittimes %>% "
+"0","  ggplot(aes(waittime)) +"
+"0","  geom_histogram(binwidth = 1)"

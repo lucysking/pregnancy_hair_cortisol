@@ -1,0 +1,17 @@
+"0","NHANES_diabetes_activity %>%
+  count(PhysActive) %>%
+  mutate(
+    prob = n / sum(n)
+  ) %>% 
+  pander()
+"
+"1","
+----------------------------
+ PhysActive    n      prob  
+------------ ------ --------
+     No       2472   0.4542 
+
+    Yes       2971   0.5458 
+----------------------------
+
+"

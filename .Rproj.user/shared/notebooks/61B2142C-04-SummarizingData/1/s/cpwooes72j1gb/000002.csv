@@ -1,0 +1,21 @@
+"0","PhysActive_table_filtered <- "
+"0","  NHANES %>%"
+"0","  drop_na(PhysActive) %>%"
+"0","  select(PhysActive) %>%"
+"0","  group_by(PhysActive) %>%"
+"0","  summarize(AbsoluteFrequency = n()) %>%"
+"0","  mutate("
+"0","    RelativeFrequency = AbsoluteFrequency / sum(AbsoluteFrequency),"
+"0","    Percentage = RelativeFrequency * 100"
+"0","  )"
+"0","pander(PhysActive_table_filtered)"
+"1","
+-----------------------------------------------------------------
+ PhysActive   AbsoluteFrequency   RelativeFrequency   Percentage 
+------------ ------------------- ------------------- ------------
+     No             2473               0.4542           45.42    
+
+    Yes             2972               0.5458           54.58    
+-----------------------------------------------------------------
+
+"

@@ -1,0 +1,27 @@
+"0","crisys_preg <-"
+"0","  read_csv(crisys_preg_file) %>% "
+"0","  mutate("
+"0","    ID = as.integer(record_id),"
+"0","    crisys_total_preg = as.double("
+"0","      pmap_int("
+"0","        select(., c(crisys_1:crisys_72)),"
+"0","        function(...) sum(c(...), na.rm = TRUE)"
+"0","      )"
+"0","    )"
+"0","  ) %>% "
+"0","  select("
+"0","    ID,"
+"0","    crisys_total_preg"
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  record_id = col_character()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"2","NAs introduced by coercion"
+"0","crisys_preg %>% "
+"0","  ggplot(aes(crisys_total_preg)) +"
+"0","  geom_histogram(bins = 20)"

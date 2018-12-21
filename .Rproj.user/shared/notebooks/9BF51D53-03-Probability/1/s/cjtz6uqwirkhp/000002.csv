@@ -1,0 +1,29 @@
+"0","SFrain <- read_csv(""data/SanFranciscoRain/1329219.csv"")"
+"2","Parsed with column specification:
+cols(
+  STATION = col_character(),
+  NAME = col_character(),
+  DATE = col_date(format = """"),
+  PRCP = col_double()
+)
+"
+"0","# create a new variable indicating whether it rained on each day"
+"0","SFrain <- "
+"0","  SFrain %>%"
+"0","  mutate(rainToday = as.integer(PRCP > 0))"
+"0","SFrain_summary <- "
+"0","  SFrain %>%"
+"0","  summarize("
+"0","    nRainyDays = sum(rainToday),"
+"0","    nDaysMeasured = n(),"
+"0","    pRainInSF = nRainyDays / nDaysMeasured"
+"0","  ) "
+"0","pander(SFrain_summary)"
+"1","
+----------------------------------------
+ nRainyDays   nDaysMeasured   pRainInSF 
+------------ --------------- -----------
+     73            365           0.2    
+----------------------------------------
+
+"

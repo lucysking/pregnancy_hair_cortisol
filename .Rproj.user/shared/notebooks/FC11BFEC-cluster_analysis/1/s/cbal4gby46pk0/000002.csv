@@ -1,0 +1,57 @@
+"0","lena_fu <-"
+"0","  read_csv(lena_fu_6months_file) %>% "
+"0","  select("
+"0","    ID = record_id,"
+"0","    lena_recordno:lena_notes"
+"0","  ) %>% "
+"0","  mutate("
+"0","    ID = as.integer(ID)"
+"0","  ) %>% "
+"0","  bind_rows("
+"0","    read_csv(lena_fu_longitudinal_file) %>% "
+"0","      select("
+"0","        ID = record_id,"
+"0","        lena_recordno:lena_notes"
+"0","      ) %>% "
+"0","      mutate("
+"0","        ID = as.integer(ID)"
+"0","      )"
+"0","  )"
+"2","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  record_id = col_character(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  lena_day_1_followup_questions_timestamp = col_datetime(format = """"),
+  lenaday_date = col_date(format = """"),
+  lena_recordno = col_character(),
+  other_caregiver = col_character(),
+  lena_probyes = col_character(),
+  lena_sickyes = col_character(),
+  lena_crowdstime = col_time(format = """"),
+  lena_crowdslength = col_double(),
+  lena_notes = col_character()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"2","NAs introduced by coercion"
+"2","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  redcap_event_name = col_character(),
+  redcap_survey_identifier = col_character(),
+  lena_day_1_followup_questions_timestamp = col_datetime(format = """"),
+  lenaday_date = col_date(format = """"),
+  lena_recordno = col_character(),
+  other_caregiver = col_character(),
+  lena_probyes = col_character(),
+  lena_sickyes = col_character(),
+  lena_crowdstime = col_time(format = """"),
+  lena_crowdslength = col_double(),
+  lena_notes = col_character()
+)
+"
+"2","See spec(...) for full column specifications.
+"

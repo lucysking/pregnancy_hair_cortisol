@@ -1,0 +1,47 @@
+"0","```r
+lscr_lk <-
+  lscr_6mo %>% 
+  select(
+    ID,
+    contains(\"sev_lk\")
+  ) %>% 
+  gather(variable, rater1, sev_lk_disas:sev_lk_other3) %>% 
+  mutate(
+    variable = str_replace(variable, \"lk_\", \"\")
+  ) %>% 
+  na.omit()
+lscr_kh <-
+  lscr_6mo %>% 
+  select(
+    ID,
+    contains(\"sev_kh\")
+  ) %>% 
+  gather(variable, rater2, sev_kh_disas:sev_kh_other3) %>% 
+  mutate(
+    variable = str_replace(variable, \"kh_\", \"\")
+  ) %>% 
+  na.omit()
+lscr_ls <-
+  lscr_6mo %>% 
+  select(
+    ID,
+    contains(\"sev_ls\")
+  ) %>% 
+  gather(variable, rater2, sev_ls_disas:sev_ls_other3) %>% 
+  mutate(
+    variable = str_replace(variable, \"ls_\", \"\")
+  ) %>% 
+  na.omit()
+lscr_icc_lk_ls <-
+  lscr_lk %>% 
+  left_join(lscr_ls, by = c(\"ID\", \"variable\")) %>% 
+  select(-ID, -variable) %>% 
+  na.omit()
+ICC(lscr_icc_lk_ls)
+```"
+"1","singular fit
+"
+"1","Call: ICC(x = lscr_icc_lk_ls)
+
+Intraclass correlation coefficients 
+"

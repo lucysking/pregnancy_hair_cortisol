@@ -1,0 +1,99 @@
+"0","```r
+lscr_6mo <-
+  lscr_6mo %>% 
+  mutate(
+    #subjective preconception severity ratings
+    subsev_precon_disas = calc_sev_preconception(lscr_disas_lifestage, lscr_disas_sev),
+    subsev_precon_witacc = calc_sev_preconception(lscr_witacc_age_devstage, lscr_witacc_sev),
+    subsev_precon_acc = calc_sev_preconception(lscr_acc_age_devstage, lscr_acc_sev),
+    subsev_precon_famjail = calc_sev_preconception(lscr_famjail_age_devstage, lscr_famjail_sev),
+    subsev_precon_jail = calc_sev_preconception(lscr_jail_age_devstage, lscr_jail_sev),
+    subsev_precon_adopt = calc_sev_preconception(lscr_adopt_age_devstage, lscr_adopt_sev),
+    subsev_precon_pardivorce = calc_sev_preconception(lscr_pardivorce_age_devstage, lscr_pardivorce_sev),
+    subsev_precon_divorce = calc_sev_preconception(lscr_divorce_age_devstage, lscr_divorce_sev),
+    subsev_precon_money = calc_sev_preconception(lscr_money_age_devstage, lscr_money_sev),
+    subsev_precon_ill = calc_sev_preconception(lscr_ill_age_devstage, lscr_ill_sev),
+    subsev_precon_emoab = calc_sev_preconception(lscr_emoab_age_devstage, lscr_emoab_sev),
+    subsev_precon_physneg = calc_sev_preconception(lscr_physneg_age_devstage, lscr_physneg_sev),
+    subsev_precon_abort = calc_sev_preconception(lscr_abort_age_devstage, lscr_abort_sev),
+    subsev_precon_sepchild = calc_sev_preconception(lscr_sepchild_age_devstage, lscr_sepchild_sev),
+    subsev_precon_care = calc_sev_preconception(lscr_care_age_devstage, lscr_care_sev),
+    subsev_precon_death1 = calc_sev_preconception(lscr_death1_age_devstage, lscr_death1_sev),
+    subsev_precon_death2 = calc_sev_preconception(lscr_death2_age_devstage, lscr_death2_sev),
+    subsev_precon_famviol = calc_sev_preconception(lscr_famviol_age_devstage, lscr_famviol_sev),
+    subsev_precon_witmug = calc_sev_preconception(lscr_witmug_age_devstage, lscr_witmug_sev),
+    subsev_precon_mug = calc_sev_preconception(lscr_mug_age_devstage, lscr_mug_sev),
+    subsev_precon_physab = calc_sev_preconception(lscr_physab_age_devstage, lscr_physab_sev),
+    subsev_precon_domviol = calc_sev_preconception(lscr_domviol_age_devstage, lscr_domviol_sev),
+    subsev_precon_sexharas = calc_sev_preconception(lscr_sexharas_age_devstage, lscr_sexharas_sev),
+    subsev_precon_sextouch1 = calc_sev_preconception(lscr_sextouch1_age_devstage, lscr_sextouch1_sev),
+    subsev_precon_sextouch2 = calc_sev_preconception(lscr_sextouch2_age_devstage, lscr_sextouch2_sev),
+    subsev_precon_rape1 = calc_sev_preconception(lscr_rape1_age_devstage, lscr_rape1_sev),
+    subsev_precon_rape2 = calc_sev_preconception(lscr_rape2_age_devstage, lscr_rape2_sev),
+    subsev_precon_other1 = calc_sev_preconception(lscr_other1_age_devstage, lscr_other1_sev),
+    subsev_precon_other2 = calc_sev_preconception(lscr_other2_age_devstage, lscr_other2_sev),
+    #objective preconception severity ratings
+    sev_precon_disas = calc_sev_preconception(lscr_disas_lifestage, sev_con_disas),
+    sev_precon_witacc = calc_sev_preconception(lscr_witacc_lifestage, sev_con_witacc),
+    sev_precon_acc = calc_sev_preconception(lscr_acc_lifestage, sev_con_acc),
+    sev_precon_famjail = calc_sev_preconception(lscr_famjail_lifestage, sev_con_famjail),
+    sev_precon_jail = calc_sev_preconception(lscr_jail_lifestage, sev_con_jail),
+    sev_precon_adopt = calc_sev_preconception(lscr_adopt_lifestage, sev_con_adopt),
+    sev_precon_pardivorce = calc_sev_preconception(lscr_pardivorce_lifestage, sev_con_pardivorce),
+    sev_precon_divorce = calc_sev_preconception(lscr_divorce_lifestage, sev_con_divorce),
+    sev_precon_money = calc_sev_preconception(lscr_money_lifestage, sev_con_money),
+    sev_precon_ill = calc_sev_preconception(lscr_ill_lifestage, sev_con_ill),
+    sev_precon_emoab = calc_sev_preconception(lscr_emoab_lifestage, sev_con_emoab),
+    sev_precon_abort = calc_sev_preconception(lscr_abort_lifestage, sev_con_abort),
+    sev_precon_sep = calc_sev_preconception(lscr_sepchild_lifestage, sev_con_sepchild),
+    sev_precon_care = calc_sev_preconception(lscr_care_lifestage, sev_con_care),
+    sev_precon_death1 = calc_sev_preconception(lscr_death1_lifestage, sev_con_death1),
+    sev_precon_death2 = calc_sev_preconception(lscr_death2_lifestage, sev_con_death2),
+    sev_precon_famviol = calc_sev_preconception(lscr_famviol_lifestage, sev_con_famviol),
+    sev_precon_witmug = calc_sev_preconception(lscr_witmug_lifestage, sev_con_witmug),
+    sev_precon_mug = calc_sev_preconception(lscr_mug_lifestage, sev_con_mug),
+    sev_precon_physab = calc_sev_preconception(lscr_physab_lifestage, sev_con_physab),
+    sev_precon_domviol = calc_sev_preconception(lscr_domviol_lifestage, sev_con_domviol),
+    sev_precon_sexharas = calc_sev_preconception(lscr_sexharas_lifestage, sev_con_sexharas),
+    sev_precon_sextouch1 = calc_sev_preconception(lscr_sextouch1_lifestage, sev_con_sextouch1),
+    sev_precon_sextouch2 = calc_sev_preconception(lscr_sextouch2_lifestage, sev_con_sextouch2),
+    sev_precon_rape1 = calc_sev_preconception(lscr_rape1_lifestage, sev_con_rape1),
+    sev_precon_rape2 = calc_sev_preconception(lscr_rape2_lifestage, sev_con_rape2),
+    sev_precon_other1 = calc_sev_preconception(lscr_other1_lifestage, sev_con_other1),
+    sev_precon_other2 = calc_sev_preconception(lscr_other2_lifestage, sev_con_other2),
+    sev_precon_other3 = calc_sev_preconception(lscr_other2_lifestage, sev_con_other2)
+  )
+precon_6mo_sev_vars <-
+  lscr_6mo %>% 
+  select(contains(\"sev_precon\")) %>% 
+  names()
+precon_6mo_sev_vars <-
+  lscr_6mo %>% 
+  select(contains(\"sev_precon\")) %>% 
+  names()
+lscr_6mo <-
+  lscr_6mo %>% 
+  mutate(
+    sum_subsev_precon = 
+      pmap_dbl(
+        select(., precon_6mo_sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    sum_sev_precon = 
+      pmap_dbl(
+        select(., precon_6mo_sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    max_sev_precon = 
+      pmap_dbl(
+        select(., precon_6mo_sev_vars),
+        function(...) max(c(...), na.rm = TRUE)
+      ),
+    max_sev_precon = if_else(
+      max_sev_precon == -Inf,
+      0, max_sev_precon
+    )
+  )
+```"
+"1","no non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Infno non-missing arguments to max; returning -Inf
+"

@@ -1,0 +1,73 @@
+"0","```r
+babies_iri_persp <- 
+  babies %>% 
+  select(
+    iri_3,
+    iri_8,
+    iri_11,
+    iri_15,
+    iri_21,
+    iri_25,
+    iri_28
+  )
+psych::alpha(babies_iri_persp)
+
+babies_iri_fantasy <- 
+  babies %>% 
+  select(
+    iri_1,
+    iri_5,
+    iri_7,
+    iri_12,
+    iri_16,
+    iri_23,
+    iri_26
+  )
+psych::alpha(babies_iri_fantasy)
+
+babies_iri_empath <- 
+  babies %>% 
+  select(
+    iri_2,
+    iri_4,
+    iri_9,
+    iri_14,
+    iri_18,
+    iri_20,
+    iri_22
+  )
+psych::alpha(babies_iri_empath)
+
+babies_iri_perdis <- 
+  babies %>% 
+  select(
+      iri_6,
+      iri_10,
+      iri_13,
+      iri_17,
+      iri_19,
+      iri_24,
+      iri_27
+    )
+psych::alpha(babies_iri_perdis)
+
+
+babies %>% 
+  summarise_at(
+    vars(iri_persp:iri_perdis),
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+babies %>% 
+  select(
+    iri_persp:iri_perdis
+  ) %>% 
+  gather(subscale, score, iri_persp:iri_perdis) %>% 
+  ggplot(aes(score)) + 
+  geom_histogram() +
+  facet_wrap(.~subscale)
+
+
+babies %>% 
+  count(is.na(iri_persp))
+```"

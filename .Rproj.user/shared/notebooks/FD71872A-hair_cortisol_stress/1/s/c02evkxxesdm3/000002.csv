@@ -1,0 +1,56 @@
+"0","```r
+crisys <-
+  read_csv(crisys_preg_file) %>% 
+  rename(ID = record_id) %>% 
+  filter(!is.na(crisys_1)) %>% 
+  mutate(
+    ID = as.character(ID),
+    crisys_total_preg = 
+      pmap_int(
+        select(., c(crisys_1:crisys_72)),
+        function(...) sum(c(...), na.rm = TRUE)
+      )
+  ) %>% 
+  select(
+    ID, 
+    crisys_total_preg
+  ) %>% 
+  left_join(
+    read_csv(crisys_newborn_file) %>% 
+      rename(ID = record_id) %>% 
+      filter(!is.na(crisys_1)) %>% 
+      mutate(
+        ID = as.character(ID),
+        crisys_total_newborn = 
+          pmap_int(
+            select(., c(crisys_1:crisys_72)),
+            function(...) sum(c(...), na.rm = TRUE)
+          )
+      ), by = \"ID\"
+  ) %>% 
+  mutate(
+    crisys_total = crisys_total_preg + crisys_total_newborn,
+    crisys_total = if_else(
+      is.na(crisys_total),
+      crisys_total_preg, crisys_total
+    )
+  ) %>% 
+  select(
+    ID,
+    crisys_total_preg,
+    crisys_total_newborn,
+    crisys_total
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_integer(),
+  record_id = col_character()
+)
+See spec(...) for full column specifications.
+Parsed with column specification:
+cols(
+  .default = col_integer()
+)
+See spec(...) for full column specifications.
+"

@@ -1,0 +1,5 @@
+"0","NHANES %>% "
+"0","  select(Height) %>% "
+"0","  drop_na() %>% "
+"0","  ggplot(aes(Height)) +"
+"0","  geom_histogram(aes(y = ..density..), binwidth = 1, fill = ""blue"")"

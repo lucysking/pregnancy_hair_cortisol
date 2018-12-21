@@ -1,0 +1,8 @@
+"0","SleepHrsNight_data_filtered <- "
+"0","  NHANES %>%"
+"0","  drop_na(SleepHrsNight) %>%"
+"0","  select(SleepHrsNight)"
+"0","SleepHrsNight_data_filtered %>% "
+"0","  ggplot(aes(SleepHrsNight)) +"
+"0","  geom_histogram(aes(y = ..density..), binwidth = 1) +"
+"0","  scalex"

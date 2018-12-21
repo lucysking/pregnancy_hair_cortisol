@@ -1,0 +1,36 @@
+"0","SleepHrsNight_cumulative <- "
+"0","  NHANES %>%"
+"0","  drop_na(SleepHrsNight) %>%"
+"0","  select(SleepHrsNight) %>%"
+"0","  group_by(SleepHrsNight) %>%"
+"0","  summarize(AbsoluteFrequency = n()) %>%"
+"0","  mutate(CumulativeFrequency = cumsum(AbsoluteFrequency))"
+"0","pander(SleepHrsNight_cumulative)"
+"1","
+---------------------------------------------------------
+ SleepHrsNight   AbsoluteFrequency   CumulativeFrequency 
+--------------- ------------------- ---------------------
+       2                 9                    9          
+
+       3                49                   58          
+
+       4                200                  258         
+
+       5                406                  664         
+
+       6               1172                 1836         
+
+       7               1394                 3230         
+
+       8               1405                 4635         
+
+       9                271                 4906         
+
+      10                97                  5003         
+
+      11                15                  5018         
+
+      12                17                  5035         
+---------------------------------------------------------
+
+"

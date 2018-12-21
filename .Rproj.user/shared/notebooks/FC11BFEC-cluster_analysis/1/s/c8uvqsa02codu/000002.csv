@@ -1,0 +1,29 @@
+"0","```r
+babies <- 
+  sfp_care_wf %>%
+  left_join(lena_day1, by = \"ID\") %>%
+  select(
+    ID, 
+    Timestamp,
+    duration,
+    sens_M.P:sens_M,
+    intrus_M,
+    posreg_M,
+    AWC_rate, 
+    CTC_rate,
+    TV.Pct
+  ) %>% 
+  left_join(lena_fu, by = \"ID\") %>% 
+  left_join(demo, by = \"ID\") %>% 
+  left_join(touch_wf, by = \"ID\") %>% 
+  mutate(
+    mom_age = (mom_dob %--% crf_date) / years(1),
+    baby_age_visit = (baby_dob %--% crf_date) / months(1),
+    baby_age_lena = (baby_dob %--% Timestamp) / months(1),
+    touch_posreg.P = (posreg_M.P - 1) * touch.P,
+    touch_posreg.R1 = (posreg_M.R1 - 1) * touch.R1,
+    touch_posreg.R2 = (posreg_M.R2 - 1) * touch.R2,
+    touch_posreg_M = (posreg_M - 1) * touch_M
+  ) %>% 
+  filter(baby_age_visit >= 5, !is.na(AWC_rate))
+```"

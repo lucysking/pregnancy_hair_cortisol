@@ -1,0 +1,7 @@
+"0","```r
+#Libraries
+library(tidyverse)
+#Parameters
+ari_cs_file <- \"~/Desktop/BABIES/infant_cortisol/data/BABIES6Months_ARI_081018.csv\"
+ari_long_file <- \"~/Desktop/BABIES/infant_cortisol/data/LongitudinalBABIES_ARI_081018.csv\"
+```"

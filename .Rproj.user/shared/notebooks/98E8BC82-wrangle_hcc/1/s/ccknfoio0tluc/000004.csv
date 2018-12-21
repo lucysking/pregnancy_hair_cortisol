@@ -1,0 +1,6 @@
+"0","hc <- "
+"0","  hc %>% "
+"0","  filter(is.na(comments) | comments == ""checked"") #removing 6 observations where hair was not enough for accurate value"
+"0","hc %>% "
+"0","  distinct(ID) %>% "
+"0","  count()"

@@ -1,0 +1,687 @@
+---
+title: "Wrangle LSC-R data collected in pregnancy"
+output: html_notebook
+---
+
+```{r}
+#Libraries
+library(tidyverse)
+library(psych)
+
+#Parameters
+stress_ratings_long_file <- "~/Desktop/BABIES/r01_winter_2019/data/long_preg_LSCR_2018-10-01_rated.xlsx"
+
+```
+
+#LSC-R Longitudinal: T1 (pregnancy)
+
+##Read in T1 data
+```{r}
+#pull IDs that have hair cortisol data
+included <- 
+  hc %>% 
+  distinct(ID) %>% 
+  pull()
+
+lscr_preg <- 
+  readxl::read_xlsx(stress_ratings_long_file) %>% 
+  rename(ID = record_id) %>% 
+  mutate_at(
+    vars(contains("preg"), "ID"),
+    as.integer
+  ) %>%
+  mutate_at(
+    vars(contains("Sev")),
+    as.double
+  ) %>% 
+  filter(ID %in% included)
+``` 
+
+##Calculate T1 reliability
+```{r}
+lscr_lk <-
+  lscr_preg %>% 
+  select(
+    ID,
+    contains("sev_lk")
+  ) %>% 
+  gather(variable, rater1, sev_lk_disas:sev_lk_other2) %>% 
+  mutate(
+    variable = str_replace(variable, "lk_", "")
+  ) %>% 
+  na.omit()
+
+lscr_ls <-
+  lscr_preg %>% 
+  select(
+    ID,
+    contains("sev_ls")
+  ) %>% 
+  gather(variable, rater2, sev_ls_disas:sev_ls_other2) %>% 
+  mutate(
+    variable = str_replace(variable, "ls_", "")
+  ) %>% 
+  na.omit()
+
+
+lscr_icc <-
+  lscr_lk %>% 
+  left_join(lscr_ls, by = c("ID", "variable")) %>% 
+  select(-ID, -variable)
+
+ICC(lscr_icc)
+```
+
+##Calculate T1 total scores
+Total number of types, summed severity, max severity, total numer of pregnancy stressors, pregnancy summed severity, pregnancy max severity 
+
+```{r}
+calc_preg_sev <- function(preg_exp, sev) { #pregnancy
+  case_when(
+    preg_exp == 1 ~ sev,
+    TRUE ~ NA_real_
+  )
+}
+
+#save variable names in order to map later
+preg_exp_vars <- 
+  lscr_preg %>% 
+  select(contains("preg")) %>% 
+  names()
+
+exp_vars <- 
+  lscr_preg %>% 
+  select(contains("preg")) %>% 
+  names() %>% 
+  str_replace("_preg", "") 
+
+sev_vars <- 
+  lscr_preg %>% 
+  select(contains("sev_con")) %>% 
+  names()
+
+#add total scores: n lifetime, objective severity lifetime, n pregnancy
+lscr_preg <-
+  lscr_preg %>% 
+  mutate_at(
+    vars(exp_vars),
+    as.integer
+  ) %>% 
+  mutate_at(
+    vars(preg_exp_vars),
+    as.integer
+  ) %>% 
+  mutate(
+    num_stress_total = 
+      pmap_int(
+        select(., exp_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    num_stress_preg = 
+      pmap_int(
+        select(., preg_exp_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ), 
+    sum_sev = 
+      pmap_dbl(
+        select(., sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    max_sev = 
+      pmap_dbl(
+        select(., sev_vars),
+        function(...) max(c(...), na.rm = TRUE)
+      ),
+    pregnancy_stress = 
+      if_else(
+        num_stress_preg > 0,
+        "yes", "no"
+      )
+  ) %>% 
+  mutate(
+    max_sev = if_else(
+      max_sev == -Inf,
+      0, max_sev
+    ),
+    ##objective severity ratings during pregnancy
+    sev_preg_disas = calc_preg_sev(lscr_disas_preg, sev_con_disas),
+    sev_preg_witacc = calc_preg_sev(lscr_witacc_preg, sev_con_witacc),
+    sev_preg_acc = calc_preg_sev(lscr_acc_preg, sev_con_acc),
+    sev_preg_famjail = calc_preg_sev(lscr_famjail_preg, sev_con_famjail),
+    sev_preg_jail = calc_preg_sev(lscr_jail_preg, sev_con_jail),
+    sev_preg_adopt = calc_preg_sev(lscr_adopt_preg, sev_con_adopt),
+    sev_preg_pardivorce = calc_preg_sev(lscr_pardivorce_preg, sev_con_pardivorce),
+    sev_preg_divorce = calc_preg_sev(lscr_divorce_preg, sev_con_divorce),
+    sev_preg_money = calc_preg_sev(lscr_money_preg, sev_con_money),
+    sev_preg_ill = calc_preg_sev(lscr_ill_preg, sev_con_ill),
+    sev_preg_emoab = calc_preg_sev(lscr_emoab_preg, sev_con_emoab),
+    sev_preg_emoab_2 = calc_preg_sev(lscr_emoab_preg_2, sev_con_emoab2),
+    sev_preg_physneg = calc_preg_sev(lscr_physneg_preg, sev_con_physneg),
+    sev_preg_abort = calc_preg_sev(lscr_abort_preg, sev_con_abort),
+    sev_preg_sepchild = calc_preg_sev(lscr_sepchild_preg, sev_con_sepchild),
+    sev_preg_care = calc_preg_sev(lscr_care_preg, sev_con_care),
+    sev_preg_death1 = calc_preg_sev(lscr_death1_preg, sev_con_death1),
+    sev_preg_death2 = calc_preg_sev(lscr_death2_preg, sev_con_death2),
+    sev_preg_famviol = calc_preg_sev(lscr_famviol_preg, sev_con_famviol),
+    sev_preg_witmug = calc_preg_sev(lscr_witmug_preg, sev_con_witmug),
+    sev_preg_mug = calc_preg_sev(lscr_mug_preg, sev_con_mug),
+    sev_preg_physab = calc_preg_sev(lscr_physab_preg, sev_con_physab),
+    sev_preg_domviol = calc_preg_sev(lscr_domviol_preg, sev_con_domviol),
+    sev_preg_sexharas = calc_preg_sev(lscr_sexharas_preg, sev_con_sexharas),
+    sev_preg_sextouch1 = calc_preg_sev(lscr_sextouch1_preg, sev_con_sextouch1),
+    sev_preg_sextouch2 = calc_preg_sev(lscr_sextouch2_preg, sev_con_sextouch2),
+    sev_preg_rape1 = calc_preg_sev(lscr_rape1_preg, sev_con_rape1),
+    sev_preg_rape2 = calc_preg_sev(lscr_rape2_preg, sev_con_rape2),
+    sev_preg_other1 = calc_preg_sev(lscr_other1_preg, sev_con_other1),
+    sev_preg_other2 = calc_preg_sev(lscr_other2_preg, sev_con_other2)
+  ) 
+
+#save variable names to map over 
+preg_sev_vars <- 
+  lscr_preg %>% 
+  select(starts_with("sev_preg")) %>% 
+  names()
+
+#calculate pregnancy objective severity
+lscr_preg <-
+  lscr_preg %>% 
+  mutate(
+    sum_sev_preg = 
+      pmap_dbl(
+        select(., preg_sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    max_sev_preg = 
+      pmap_dbl(
+        select(., preg_sev_vars),
+        function(...) max(c(...), na.rm = TRUE)
+      ),
+    max_sev_preg = if_else(
+      max_sev_preg == -Inf,
+      0, max_sev_preg
+    )
+  )
+
+```
+
+
+##T1 stress by developmental stage 
+get frequencies of each type in childhood vs. adulthood and separate sum sev
+get frequencies of childhood maltreatment and sum sev
+```{r}
+calc_dev_stage <- function(type_age) { #childhood vs. adulthood
+  case_when(
+    type_age < 18 ~ "childhood",
+    type_age >= 18 ~ "adulthood",
+    TRUE ~ NA_character_
+  )
+}
+
+calc_sev_childhood <- function(dev_stage, sev) { #childhood
+   if_else(
+    dev_stage == "childhood",
+    sev, NA_real_
+  )
+}
+
+age_vars <-
+  lscr_preg %>% 
+  select(contains("_age")) %>% 
+  names()
+
+lscr_preg <-
+  lscr_preg %>% 
+  mutate_at(
+    vars(age_vars),
+    .funs = funs("devstage" = calc_dev_stage(.))
+  ) %>% 
+  mutate(
+    ##objective ratings of stress in childhood
+    sev_child_disas = calc_sev_childhood(lscr_disas_age_devstage, sev_con_disas),
+    sev_child_witacc = calc_sev_childhood(lscr_witacc_age_devstage, sev_con_witacc),
+    sev_child_acc = calc_sev_childhood(lscr_acc_age_devstage, sev_con_acc),
+    sev_child_famjail = calc_sev_childhood(lscr_famjail_age_devstage, sev_con_famjail),
+    sev_child_jail = calc_sev_childhood(lscr_jail_age_devstage, sev_con_jail),
+    sev_child_adopt = calc_sev_childhood(lscr_adopt_age_devstage, sev_con_adopt),
+    sev_child_pardivorce = calc_sev_childhood(lscr_pardivorce_age_devstage, sev_con_pardivorce),
+    sev_child_divorce = calc_sev_childhood(lscr_divorce_age_devstage, sev_con_divorce),
+    sev_child_money = calc_sev_childhood(lscr_money_age_devstage, sev_con_money),
+    sev_child_ill = calc_sev_childhood(lscr_ill_age_devstage, sev_con_ill),
+    sev_child_emoab = calc_sev_childhood(lscr_emoab_age_devstage, sev_con_emoab),
+    sev_child_emoab_2 = calc_sev_childhood(lscr_emoab_age_2_devstage, sev_con_emoab2),
+    sev_child_physneg = calc_sev_childhood(lscr_physneg_age_devstage, sev_con_physneg),
+    sev_child_abort = calc_sev_childhood(lscr_abort_age_devstage, sev_con_abort),
+    sev_child_sepchild = calc_sev_childhood(lscr_sepchild_age_devstage, sev_con_sepchild),
+    sev_child_care = calc_sev_childhood(lscr_care_age_devstage, sev_con_care),
+    sev_child_death1 = calc_sev_childhood(lscr_death1_age_devstage, sev_con_death1),
+    sev_child_death2 = calc_sev_childhood(lscr_death2_age_devstage, sev_con_death2),
+    sev_child_famviol = calc_sev_childhood(lscr_famviol_age_devstage, sev_con_famviol),
+    sev_child_witmug = calc_sev_childhood(lscr_witmug_age_devstage, sev_con_witmug),
+    sev_child_mug = calc_sev_childhood(lscr_mug_age_devstage, sev_con_mug),
+    sev_child_physab = calc_sev_childhood(lscr_physab_age_devstage, sev_con_physab),
+    sev_child_domviol = calc_sev_childhood(lscr_domviol_age_devstage, sev_con_domviol),
+    sev_child_sexharas = calc_sev_childhood(lscr_sexharas_age_devstage, sev_con_sexharas),
+    sev_child_sextouch1 = calc_sev_childhood(lscr_sextouch1_age_devstage, sev_con_sextouch1),
+    sev_child_sextouch2 = calc_sev_childhood(lscr_sextouch2_age_devstage, sev_con_sextouch2),
+    sev_child_rape1 = calc_sev_childhood(lscr_rape1_age_devstage, sev_con_rape1),
+    sev_child_rape2 = calc_sev_childhood(lscr_rape2_age_devstage, sev_con_rape2),
+    sev_child_other1 = calc_sev_childhood(lscr_other1_age_devstage, sev_con_other1),
+    sev_child_other2 = calc_sev_childhood(lscr_other2_age_devstage, sev_con_other2)
+  )
+
+child_subsev_vars <-
+  lscr_preg %>% 
+  select(contains("subsev_child")) %>% 
+  names()
+
+child_sev_vars <-
+  lscr_preg %>% 
+  select(contains("sev_child")) %>% 
+  names()
+
+lscr_preg <-
+  lscr_preg %>% 
+  mutate(
+    sum_sev_childhood = 
+      pmap_dbl(
+        select(., child_sev_vars),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    max_sev_childhood = 
+      pmap_dbl(
+        select(., child_sev_vars),
+        function(...) max(c(...), na.rm = TRUE)
+      ),
+    max_sev_childhood = if_else(
+      max_sev_childhood == -Inf,
+      0, max_sev_childhood
+    ),
+    sum_sev_maltreatment = 
+      pmap_dbl(
+        select(
+          ., 
+          sev_child_emoab,
+          sev_child_emoab_2,
+          sev_child_physab,
+          sev_child_physneg,
+          sev_child_adopt,
+          sev_child_rape1,
+          sev_child_rape2,
+          sev_child_sextouch1,
+          sev_child_sextouch2,
+          sev_child_sexharas
+        ),
+        function(...) sum(c(...), na.rm = TRUE)
+      ),
+    maltreated = if_else(
+      sum_sev_maltreatment > 0, 
+      "maltreated", "not maltreated"
+    )
+  ) 
+```
+
+##Examine T1 distributions
+```{r}
+lscr_preg %>% 
+  ggplot(aes(num_stress_total)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = seq.int(0, 30, 5)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 20, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16)
+  ) +
+  labs(
+    x = "Lifetime stress count"
+  )
+
+lscr_preg %>% 
+  ggplot(aes(num_stress_preg)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = seq.int(0, 30, 1)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 20, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16)
+  ) +
+  labs(
+    x = "Pregnancy stress count"
+  )
+
+lscr_preg %>% 
+  count(num_stress_preg)
+
+lscr_preg %>% 
+  ggplot(aes(sum_sev)) +
+  geom_histogram(binwidth = 3) +
+  scale_x_continuous(breaks = seq.int(0, 100, 5)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 20, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16)
+  ) +
+  labs(
+    x = "Lifetime stress severity"
+  )
+
+lscr_preg %>% 
+  ggplot(aes(max_sev)) +
+  geom_histogram(binwidth = .5) +
+  scale_x_continuous(breaks = seq.int(0, 5, 1)) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 20, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16)
+  ) +
+  labs(
+    x = "Maximum stress severity"
+  )
+
+lscr_preg %>% 
+  ggplot(aes(sum_sev_preg)) +
+  geom_histogram(binwidth = 3) +
+  theme_minimal() +
+  scale_x_continuous(breaks = seq.int(0, 25, 2)) +
+  theme(
+    panel.grid = element_blank(),
+    plot.title = element_text(size = 20, hjust = .5),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 16),
+    legend.title = element_text(size = 18), 
+    legend.text = element_text(size = 16)
+  ) +
+  labs(
+    x = "Pregnancy stress severity"
+  ) 
+
+lscr_preg %>% 
+  ggplot(aes(sum_sev_childhood)) +
+  geom_histogram(bins = 15) +
+  labs(x = "Childhood stress severity")
+
+lscr_preg %>% 
+  ggplot(aes(max_sev_childhood)) +
+  geom_histogram(bins = 15) +
+  labs(x = "Max childhood stress severity")
+
+```
+
+## Descriptives
+```{r}
+lscr_preg %>% 
+  count(sum_sev_childhood == 0) 
+
+lscr_preg %>% 
+  count(pregnancy_stress) %>% 
+  mutate(per = n / sum(n))
+
+lscr_preg %>% 
+  count(maltreated) %>% 
+  mutate(
+    per = n / sum(n)
+  )
+
+lscr_preg %>% 
+  summarize_at(
+    vars(sum_sev_childhood),
+    funs(min, max, mean, median, sd)
+  )
+```
+
+
+## T1 frequency of stressors overall
+```{r}
+N_T1 <- n_distinct(lscr_preg$ID)
+
+lscr_table <-
+  lscr_preg %>% 
+  select(
+    sev_vars
+  ) %>% 
+  gather(type, rating, sev_con_disas:sev_con_other2) %>% 
+  group_by(type) %>% 
+  count(endorsed = !is.na(rating)) %>% 
+  ungroup() %>% 
+  filter(endorsed) %>% 
+  mutate(
+    type = str_replace(type, "sev_con_", "")
+  ) %>% 
+  select(-endorsed)
+
+types_names <-
+  lscr_table %>% 
+  select(type) %>% 
+  mutate(type = as.factor(type)) %>% 
+  pull(type) %>% 
+  levels()
+
+lscr_table %>% 
+  mutate(
+    type = factor(
+      type,
+      levels = types_names,
+      labels = c(
+        "abortion or miscarriage",
+        "accident (self)",
+        "adoption or foster care",
+        "cartaker for close other",
+        "sudden death of close other",
+        "expected death of close other",
+        "disaster",
+        "divorce (self)",
+        "domestic violence (adulthood)",
+        "emotional abuse 1",
+        "emotional abuse 2",
+        "arrest/imprisonment of family",
+        "domestic violence (childhood)",
+        "serious physical illness (self)",
+        "arrest/imprisonment (self)",
+        "financial problems",
+        "robbed/mugged/attacked (self)",
+        "other (anything additional)",
+        "other (happened to close other)",
+        "parental separation/divorce",
+        "physical abuse",
+        "physical neglect",
+        "rape (childhood)",
+        "rape (adulthood)",
+        "separated from child",
+        "sexual harassment",
+        "other sexual assault (childhood)",
+        "other sexual assault (adulthood)",
+        "witnessed accident",
+        "witnessed robbery/mugging/attack"
+      )
+    ),
+    type = fct_collapse(
+      type,
+      `emotional abuse/neglect` = c("emotional abuse 1", "emotional abuse 2")
+    )
+  ) %>% 
+  group_by(type) %>% 
+  summarise(
+    n = sum(n),
+    `proportion endorsed` = round(n / N_T1, 2) 
+  ) %>% 
+  arrange(desc(n)) %>% 
+  knitr::kable()
+```
+
+##T1 frequency of stressors in pregnancy
+```{r}
+lscr_table_pregnancy_stressors <-
+  lscr_preg %>% 
+  select(
+    preg_sev_vars
+  ) %>% 
+  gather(type, rating, sev_preg_disas:sev_preg_other2) %>% 
+  group_by(type) %>% 
+  count(endorsed = !is.na(rating)) %>% 
+  ungroup() %>% 
+  filter(endorsed) %>% 
+  mutate(
+    type = str_replace(type, "sev_preg_", "")
+  ) %>% 
+  select(-endorsed)
+
+types_preg_names <-
+  lscr_table_pregnancy_stressors %>% 
+  select(type) %>% 
+  mutate(type = as.factor(type)) %>% 
+  pull(type) %>% 
+  levels()
+
+lscr_table_pregnancy_stressors %>% 
+  mutate(
+    type = factor(
+      type,
+      levels = types_preg_names,
+      labels = c(
+        "accident (self)",
+        "caretaker for close other",
+        "expected death of close other",
+        "divorce (self)",
+        "emotional abuse",
+        "financial problems",
+        "other (anything additional)",
+        "separated from child",
+        "sexual harassment",
+        "witnessed accident"
+      )
+    )
+  ) %>% 
+  group_by(type) %>% 
+  summarise(
+    n = sum(n),
+    `proportion endorsed` = round(n / N_T1, 2) 
+  ) %>% 
+  arrange(desc(n)) %>% 
+  knitr::kable()
+
+lscr_preg %>% 
+  count(num_stress_preg)
+```
+
+##T1 frequency of stressors in childhood
+```{r}
+lscr_table_childhood_stressors <-
+  lscr_preg %>% 
+  select(
+    child_sev_vars
+  ) %>% 
+  gather(type, rating, sev_child_disas:sev_child_other2) %>% 
+  group_by(type) %>% 
+  count(endorsed = !is.na(rating)) %>% 
+  ungroup() %>% 
+  filter(endorsed) %>% 
+  mutate(
+    type = str_replace(type, "sev_child_", "")
+  ) %>% 
+  select(-endorsed)
+
+types_child_names <-
+  lscr_table_childhood_stressors %>% 
+  select(type) %>% 
+  mutate(type = as.factor(type)) %>% 
+  pull(type) %>% 
+  levels()
+
+lscr_table_childhood_stressors %>% 
+  mutate(
+    type = factor(
+      type,
+      levels = types_child_names,
+      labels = c(
+        "accident (self)",
+        "adoption or foster care",
+        "caretaker for close other",
+        "sudden death of close other",
+        "expected death of close other",
+        "disaster",
+        "domestic violence (adulthood)",
+        "emotional abuse 1",
+        "emotional abuse 2",
+        "arrest/imprisonment of family",
+        "domestic violence (childhood)",
+        "serious physical illness (self)",
+        "financial problems",
+        "robbed/mugged/attacked (self)",
+        "other (anything additional)",
+        "other (happened to close other)",
+        "parental separation/divorce",
+        "physical abuse",
+        "physical neglect",
+        "rape (childhood)",
+        "rape (adulthood)",
+        "sexual harassment",
+        "other sexual assault (childhood)",
+        "other sexual assault (adulthood)",
+        "witnessed accident",
+        "witnessed robbery/mugging/attack"
+      )
+    ),
+    type = fct_collapse(
+      type,
+      `emotional abuse/neglect` = c("emotional abuse 1", "emotional abuse 2"),
+      `rape` = c("rape (childhood)", "rape (adulthood)"),
+      `other sexual assault` = c("other sexual assault (childhood)", "other sexual assault (adulthood)")
+    )
+  ) %>% 
+  group_by(type) %>% 
+  summarise(
+    n = sum(n),
+    `proportion endorsed` = round(n / N_T1, 2) 
+  ) %>% 
+  arrange(desc(n)) %>% 
+  knitr::kable()
+```
+
+## Winsorize
+```{r}
+winsorize <- function(df, value) {
+  value <- enquo(value)
+
+  df %>%
+    mutate(
+      value = case_when(
+        !!value > (mean(!!value, na.rm = TRUE) + (3 * sd(!!value, na.rm = TRUE))) ~
+        mean(!!value, na.rm = TRUE) + (3 * sd(!!value, na.rm = TRUE)),
+        !!value < (mean(!!value, na.rm = TRUE) - (3 * sd(!!value, na.rm = TRUE))) ~
+        mean(!!value, na.rm = TRUE) - (3 * sd(!!value, na.rm = TRUE)),
+        TRUE ~ !!value
+      )
+    )
+}
+
+lscr_preg <-
+  lscr_preg %>% 
+  winsorize(sum_sev_childhood) %>% 
+  rename(sum_sev_childhood_win = value)
+
+lscr_preg %>% 
+  ggplot(aes(sum_sev_childhood_win)) +
+  geom_histogram(bins = 15) +
+  labs(x = "Childhood stress severity (winsorized")
+
+```
+
+
+
+
+

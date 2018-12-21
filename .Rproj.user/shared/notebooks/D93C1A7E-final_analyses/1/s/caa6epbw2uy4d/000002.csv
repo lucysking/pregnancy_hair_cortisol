@@ -1,0 +1,8 @@
+"0","```r
+babies %>% 
+  summarise_at(
+    vars(sens_M.P, sens_M.R1, sens_M.R2, sens_M), 
+    funs(mean, sd, min, max), na.rm = TRUE
+  )
+
+```"

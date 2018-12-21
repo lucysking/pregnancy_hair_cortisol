@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1545320146899.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1895944868",
+    "id" : "DD0C24B7",
+    "lastKnownWriteTime" : 1545434718,
+    "last_content_update" : 1545434718378,
+    "path" : "~/Desktop/BABIES/preg_hair_cortisol/preg_hair_cort_sync/pregnancy_hair_cortisol/wrangle_hcc_data.Rmd",
+    "project_path" : "wrangle_hcc_data.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "cursorPosition" : "5,6",
+        "scrollLine" : "0"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

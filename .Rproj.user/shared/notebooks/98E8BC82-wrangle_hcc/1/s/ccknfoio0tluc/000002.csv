@@ -1,0 +1,7 @@
+"0","hc <-"
+"0","  bind_rows(hc_1, hc_2) %>% "
+"0","  mutate(ID = as.integer(ID))"
+"0","  "
+"0","hc %>% "
+"0","  distinct(ID) %>% "
+"0","  count()"

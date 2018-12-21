@@ -1,0 +1,68 @@
+"0","```r
+babies %>% 
+  ggplot(aes(iri_persp, AWC_rate)) +
+  geom_point(
+    size = 4,
+    alpha = 1/2
+  ) + 
+  geom_smooth(
+    size = 3,
+    color = \"#2779CB\",
+    method = \"lm\"
+  ) +
+  scale_y_continuous(
+    breaks = seq.int(300, 3300, 300)
+  ) +
+  scale_x_continuous(
+    breaks = seq.int(10, 28, 2)
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 20)
+  ) +
+  labs(
+    x = \"Maternal perspective taking\",
+    y = \"Adult words per hour\"
+  )
+
+ggsave(
+  \"~/Desktop/BABIES/neglect_perspective/neglect_persp_sync/plots/awc_perspective_taking.jpeg\",
+  width = 9,
+  height = 7
+  )
+
+babies %>% 
+  ggplot(aes(iri_perdis, touch_M)) +
+  geom_point(
+    size = 4,
+    alpha = 1/2
+  ) + 
+  geom_smooth(
+    size = 3,
+    color = \"#AD251E\",
+    method = \"lm\"
+  ) +
+  scale_y_continuous(
+    breaks = seq.int(0, 1.00, .10),
+    labels = scales::percent
+  ) +
+  scale_x_continuous(
+    breaks = seq.int(0, 25, 2)
+  ) +
+  theme_minimal() +
+  theme(
+    axis.title = element_text(size = 30),
+    axis.text = element_text(size = 20)
+  ) +
+  labs(
+    x = \"Maternal personal distress\",
+    y = \"Maternal touch\"
+  )
+
+ggsave(
+  \"~/Desktop/BABIES/neglect_perspective/neglect_persp_sync/plots/touch_personal_distress.jpeg\",
+  width = 9,
+  height = 7
+  )
+```"

@@ -1,0 +1,15 @@
+"1","
+ Number of subjects = 138     Number of Judges =  2
+"
+"0","```r
+lscr_icc_lk_kh <-
+  lscr_lk %>% 
+  left_join(lscr_kh, by = c(\"ID\", \"variable\")) %>% 
+  select(-ID, -variable) %>% 
+  na.omit()
+ICC(lscr_icc_lk_kh)
+```"
+"1","Call: ICC(x = lscr_icc_lk_kh)
+
+Intraclass correlation coefficients 
+"

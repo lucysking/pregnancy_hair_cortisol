@@ -1,0 +1,35 @@
+"0","NHANES_adult <- "
+"0","  NHANES %>%"
+"0","  filter("
+"0","    Age >= 18,"
+"0","    !is.na(PhysActive),"
+"0","    !is.na(DaysMentHlthBad)"
+"0","  ) %>% "
+"0","  mutate(badMentalHealth = DaysMentHlthBad > 7)"
+"0","NHANES_MentalHealth_summary <-"
+"0","  NHANES_adult %>%"
+"0","  summarize(badMentalHealth = mean(badMentalHealth))"
+"0","pander(NHANES_MentalHealth_summary)"
+"1","
+-----------------
+ badMentalHealth 
+-----------------
+     0.1641      
+-----------------
+
+"
+"0","NHANES_MentalHealth_by_PhysActive <-"
+"0","  NHANES_adult %>%"
+"0","  group_by(PhysActive) %>%"
+"0","  summarize(badMentalHealth = mean(badMentalHealth)) "
+"0","pander(NHANES_MentalHealth_by_PhysActive)"
+"1","
+------------------------------
+ PhysActive   badMentalHealth 
+------------ -----------------
+     No           0.2004      
+
+    Yes           0.1321      
+------------------------------
+
+"

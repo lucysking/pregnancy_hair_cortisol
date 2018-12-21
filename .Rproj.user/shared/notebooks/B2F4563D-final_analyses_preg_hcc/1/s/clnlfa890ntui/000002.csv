@@ -1,0 +1,88 @@
+"0","```r
+hc_questions <-
+  read_csv(hair_questions_file) %>% 
+  rename(
+    ID = record_id,
+    timepoint = redcap_event_name
+  ) %>% 
+  mutate(
+    ID = as.integer(ID),
+    steroid = if_else(
+      is.na(steroid),
+      0, as.double(steroid)
+    ),
+    timepoint = str_replace(timepoint, \"_arm_1\", \"\"),
+    timepoint = if_else(
+      timepoint == \"neonatal\",
+      \"newborn\", timepoint
+    ),
+    hair_dye_weeks = case_when(
+      hair_dye_when_unit == \"years\" ~ hair_dye_when * 52,
+      hair_dye_when_unit == \"months\" ~ hair_dye_when * 4,
+      hair_dye_when_unit == \"weeks\" ~ hair_dye_when,
+      hair_dye_when_unit == \"days\" ~ hair_dye_when / 7
+    )
+  ) %>% 
+  select(
+    -hair_questions_timestamp
+  ) %>% 
+  select(
+    ID,
+    timepoint, 
+    hair_dye_weeks,
+    steroid
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  record_id = col_double(),
+  redcap_event_name = col_character(),
+  hair_questions_timestamp = col_character(),
+  hair_dye = col_double(),
+  hair_dye_when = col_double(),
+  hair_dye_when_unit = col_character(),
+  steroid = col_double()
+)
+"
+"0","```r
+hc_covariates <-
+  read_csv(hair_cort_covariates_file) %>% 
+  select(
+    ID,
+    preg_cigarettes_prenatal,
+    bmi_preg
+  ) %>% 
+  mutate(
+    smoking_prenatal = if_else(
+      preg_cigarettes_prenatal > 1,
+      1, 0
+    )
+  ) %>% 
+  left_join(
+    read_csv(delivery_questions_file), by = \"ID\"
+  ) %>% 
+  mutate(
+    labor_mode = as.factor(
+      recode(
+        labor_mode,
+        \"1\" = \"vaginal/instrument\",
+        \"2\" = \"c-section\",
+        \"3\" = \"vaginal/instrument\"
+      )
+    )
+  )
+```"
+"1","Parsed with column specification:
+cols(
+  .default = col_double(),
+  mom_height = col_character(),
+  perscription_type = col_character(),
+  substance_type_prenatal = col_character()
+)
+See spec(...) for full column specifications.
+Parsed with column specification:
+cols(
+  ID = col_double(),
+  labor_mode = col_double()
+)
+"
